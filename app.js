@@ -1,16 +1,16 @@
 require('dotenv').config();
-// Require the necessary discord.js classes
-const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
+const { Client, Events, GatewayIntentBits, Collection, MessageFlags } = require('discord.js');
 const token = process.env.TOKEN;
 const path = require('node:path');
 const fs = require('node:fs');
 
-// Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildVoiceStates
+    ]
+});
 
-// When the client is ready, run this code (only once).
-// The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-// It makes some properties non-nullable.
 client.once(Events.ClientReady, (readyClient) => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
@@ -46,16 +46,19 @@ client.on(Events.InteractionCreate, async interaction => {
     } catch (error) {
         console.error(error);
         if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+            await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
         } else {
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
         }
     }
 });
 
-client.on('voiceStateUpdate', (oldState, newState) => {
-    console.log(`voiceStateUpdate: ${oldState} | ${newState}`);
+client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+    const userTag = newState.member.user.tag;
+    const oldChannel = oldState.channel ? oldState.channel.name : "None";
+    const newChannel = newState.channel ? newState.channel.name : "None";
+    const channel = await client.channels.fetch('1480833309415051365');
+    channel.send({ content: `Voice Update for **${userTag}**: ${oldChannel} -> ${newChannel}` });
 });
 
-// Log in to Discord with your client's token
 client.login(token);
