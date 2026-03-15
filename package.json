@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "description": "NIT Discord Bot",
   "main": "app.js",
-  "type": "module",
   "engines": {
     "node": ">=18.x"
   },
