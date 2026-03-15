@@ -53,5 +53,9 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
+client.on('voiceStateUpdate', (oldState, newState) => {
+    console.log(`voiceStateUpdate: ${oldState} | ${newState}`);
+});
+
 // Log in to Discord with your client's token
 client.login(token);
