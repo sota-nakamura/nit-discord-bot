@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require("http");
 const querystring = require("node:querystring");
 const { REST, Routes } = require('discord.js');
@@ -33,7 +34,7 @@ http
             res.end("Discord Bot is Oprateing!");
         }
     })
-    .listen(process.env.PORT, () => {
+    .listen(process.env.PORT, async () => {
         const commands = [];
         const commandsPath = path.join(__dirname, 'commands');
         const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
@@ -52,20 +53,18 @@ http
         const rest = new REST().setToken(token);
 
         // and deploy your commands!
-        (async () => {
-            try {
-                console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        try {
+            console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-                // The put method is used to fully refresh all commands in the guild with the current set
-                const data = await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+            // The put method is used to fully refresh all commands in the guild with the current set
+            const data = await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
 
-                console.log(`Successfully reloaded ${data.length} application (/) commands.`);
-                console.log("Server is running on port " + process.env.PORT);
-            } catch (error) {
-                // And of course, make sure you catch and log any errors!
-                console.error(error);
-            }
-        })();
+            console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+            console.log("Server is running on port " + process.env.PORT);
+        } catch (error) {
+            // And of course, make sure you catch and log any errors!
+            console.error(error);
+        }
     });
 
 if (process.env.TOKEN == undefined || process.env.TOKEN == "") {

@@ -8,9 +8,9 @@
     "node": ">=18.x"
   },
   "scripts": {
-    "start": "node app.js",
+    "start": "node server.js",
     "register": "node command.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon server.js"
   },
   "author": "Satoimo Satosi",
   "license": "MIT",

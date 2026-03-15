@@ -1,3 +1,4 @@
+require('dotenv').config();
 // Require the necessary discord.js classes
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
 const token = process.env.TOKEN;
