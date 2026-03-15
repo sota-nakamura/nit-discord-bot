@@ -1,6 +1,6 @@
 // Require the necessary discord.js classes
 const { Client, Events, GatewayIntentBits, Collection } = require('discord.js');
-const { token } = process.env.TOKEN;
+const token = process.env.TOKEN;
 const path = require('node:path');
 const fs = require('node:fs');
 
