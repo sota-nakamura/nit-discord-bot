@@ -33,7 +33,7 @@ http
             res.end("Discord Bot is Oprateing!");
         }
     })
-    .listen(3000, () => {
+    .listen(process.env.PORT, () => {
         const commands = [];
         const commandsPath = path.join(__dirname, 'commands');
         const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
@@ -60,7 +60,7 @@ http
                 const data = await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
 
                 console.log(`Successfully reloaded ${data.length} application (/) commands.`);
-                console.log("Server is running on port 3000");
+                console.log("Server is running on port " + process.env.PORT);
             } catch (error) {
                 // And of course, make sure you catch and log any errors!
                 console.error(error);
