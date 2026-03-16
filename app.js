@@ -54,6 +54,9 @@ client.on(Events.InteractionCreate, async interaction => {
 });
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+    if (newState.channelId === "1480833420560171029") {
+        newState.member.user.tag
+    }
     const userTag = newState.member.user.tag;
     const oldChannel = oldState.channel ? oldState.channel.name : "None";
     const newChannel = newState.channel ? newState.channel.name : "None";
