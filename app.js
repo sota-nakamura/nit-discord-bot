@@ -56,7 +56,7 @@ for (const file of commandFiles) {
 client.on(Events.ClientReady, async () => {
     client.user.setPresence({
         status: "online",
-        activities: [{ name: "ん～変われないのぉ", type: ActivityType.Custom }]
+        activities: [{ name: "実は世界進出を狙っている", type: ActivityType.Custom }]
     });
 });
 client.on(Events.InteractionCreate, async interaction => {
