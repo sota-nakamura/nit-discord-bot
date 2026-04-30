@@ -10,34 +10,35 @@ module.exports = {
             .addTextDisplayComponents(
                 new TextDisplayBuilder()
                     .setContent(
-                        '## 一時的なVCを生成しました \n - 一時的なVCはすべてのユーザーが退出すると削除されます。\n - 下のドロップダウンから設定や権限を変更できます。',
+                        '## :tools: 一時的なVCを生成しました \n - 一時的なVCはすべてのユーザーが退出すると削除されます。\n - 下のドロップダウンから設定や権限を変更できます。',
+                    ),
+            )
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(
+                        '### チャンネルの設定'
+                    ),
+            )
+            .addActionRowComponents(
+                new ButtonBuilder().setCustomId("settings").setLabel("設定").setStyle(ButtonStyle.Primary)
+            )
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(
+                        '### チャンネルの権限'
                     ),
             )
             .addActionRowComponents(
                 new ActionRowBuilder()
                     .setComponents(
                         new UserSelectMenuBuilder()
-                            .setCustomId('exampleSelect')
-                            .setPlaceholder('Select users'),
+                            .setCustomId('channelPermissions')
+                            .setPlaceholder('チャンネルの権限を設定'),
                     ),
             )
-            .addSeparatorComponents(
-                new SeparatorBuilder()
-            )
-            .addSectionComponents(
-                new SectionBuilder()
-                    .addTextDisplayComponents(
-                        new TextDisplayBuilder()
-                            .setContent('### 設定をロードする')
-                    )
-                    .setButtonAccessory(
-                        new ButtonBuilder()
-                            .setCustomId('VCPrefConfirm')
-                            .setEmoji("9175359b37e71ac6")
-                            .setLabel('ロード')
-                            .setStyle(ButtonStyle.Primary)
-                    )
-            );
         const response = await interaction.reply({
             components: [exampleContainer],
             flags: MessageFlags.IsComponentsV2,
