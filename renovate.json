@@ -7,5 +7,21 @@
   ],
   "ignorePaths": [
     "**/node_modules/**"
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "npm"
+      ],
+      "matchPackagePatterns": [
+        "better-sqlite3",
+        "discord.js",
+        "dotenv",
+        "express",
+        "node-cron",
+        "sqlite3"
+      ],
+      "automerge": false
+    }
   ]
 }

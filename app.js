@@ -17,6 +17,7 @@ const {
     ModalBuilder,
     ChannelType,
     PermissionFlagsBits,
+    ActivityType
 } = require('discord.js');
 const token = process.env.TOKEN;
 const path = require('node:path');
@@ -52,7 +53,12 @@ for (const file of commandFiles) {
         console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
     }
 }
-
+client.on(Events.ClientReady, async () => {
+    client.user.setPresence({
+        status: "online",
+        activities: [{ name: "ん～変われないのぉ", type: ActivityType.Custom }]
+    });
+});
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isChatInputCommand()) {
         const command = interaction.client.commands.get(interaction.commandName);
