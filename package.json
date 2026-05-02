@@ -3,14 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "description": "NIT Discord Bot",
-  "main": "app.js",
+  "main": "src/index.js",
   "engines": {
-    "node": ">=18.x"
+    "node": ">=20.x"
   },
   "scripts": {
-    "start": "node server.js",
-    "register": "node command.js",
-    "dev": "nodemon server.js"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
   },
   "author": "Satoimo Satosi",
   "license": "MIT",
