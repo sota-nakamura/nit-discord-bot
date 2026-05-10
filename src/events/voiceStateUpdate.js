@@ -1,6 +1,6 @@
-const { Events, ChannelType, PermissionFlagsBits, MessageFlags } = require('discord.js');
+const { Events, ChannelType, PermissionFlagsBits, MessageFlags, AllowedMentionsTypes } = require('discord.js');
 const TemporaryVC = require('../models/TemporaryVC');
-const { createVCConfigContainer } = require('../utils/embeds');
+const { createVCConfigContainer } = require('../utils/components');
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -24,18 +24,12 @@ module.exports = {
                 TemporaryVC.create(newChannel.id, newState.member.user.id);
 
                 await newState.member.voice.setChannel(newChannel.id);
-                
-                const channelConfigContainer = createVCConfigContainer(newChannel.id);
+
+                const channelConfigContainer = createVCConfigContainer(newChannel.id, newState.member.user.id);
 
                 await newChannel.send({
-                    mentions: {
-                        users: [newState.member.user.id],
-                        everyone: false,
-                        repliedUser: false
-                    },
                     components: [channelConfigContainer],
                     flags: MessageFlags.IsComponentsV2,
-                    withResponse: true
                 });
             } catch (error) {
                 console.error('VC作成またはメッセージ送信に失敗しました:', error);
