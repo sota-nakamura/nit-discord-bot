@@ -57,6 +57,14 @@ module.exports = {
             // update or insert in database via model
             await RolePrefix.remove(role.id);
 
+            // remove from all members
+            const members = await interaction.guild.members.fetch();
+            members.forEach(async member => {
+                if (member.nickname && member.nickname.startsWith(`[${role.name}]`)) {
+                    await member.setNickname(null);
+                }
+            })
+
             interaction.reply({ content: `ロール **${role.name}** の接頭辞を削除しました。`, flags: MessageFlags.Ephemeral });
         } else if (subcommand === 'list') {
             const prefixes = await RolePrefix.getAll();
@@ -74,7 +82,7 @@ module.exports = {
 
             // Fetch all roles to get their positions
             const allRoles = await guild.roles.fetch();
-            
+
             // Sort prefixes by role position descending
             const sortedPrefixes = prefixes
                 .map(p => {
@@ -84,14 +92,14 @@ module.exports = {
                 .sort((a, b) => b.position - a.position);
 
             const members = await guild.members.fetch();
-            for (const member of members.values()) {
+            members.forEach(async member => {
                 // Find the first (highest position) role in sortedPrefixes that the member has
                 const prefixData = sortedPrefixes.find(p => member.roles.cache.has(p.role_id));
-                
+
                 if (prefixData) {
                     const prefix = prefixData.prefix;
                     const targetNickname = `[${prefix}]${member.user.username}`.slice(0, 32);
-                    
+
                     if (member.nickname !== targetNickname) {
                         try {
                             await member.setNickname(targetNickname);
@@ -101,7 +109,7 @@ module.exports = {
                         }
                     }
                 }
-            }
+            })
             await interaction.editReply({ content: `${updateCount} 人のユーザーにロールの接頭辞を適用しました。` });
         }
     },
