@@ -5,16 +5,17 @@ class TemporaryVC {
         return db.prepare('INSERT INTO temporary_vcs (channel_id, creator_id) VALUES (?, ?)').run(channelId, creatorId);
     }
 
-    static get(channelId) {
-        return db.prepare('SELECT creator_id FROM temporary_vcs WHERE channel_id = ?').get(channelId);
-    }
-
     static exists(channelId) {
         return !!db.prepare('SELECT 1 FROM temporary_vcs WHERE channel_id = ?').get(channelId);
     }
 
     static saveName(userId, name) {
-        return db.prepare('UPDATE vc_prefs SET name = ? WHERE user_id = ?').run(name, userId);
+        const existing = !!db.prepare('SELECT 1 FROM vc_prefs WHERE user_id = ?').get(userId);
+        if (existing) {
+            return db.prepare('UPDATE vc_prefs SET name = ? WHERE user_id = ?').run(name, userId);
+        } else {
+            return db.prepare('INSERT INTO vc_prefs (user_id, name) VALUES (?, ?)').run(userId, name);
+        }
     }
 
     static getName(userId) {
