@@ -66,6 +66,7 @@ module.exports = {
                     if (channel) {
                         const newName = interaction.fields.getTextInputValue('channelNameInput');
                         await channel.setName(newName);
+                        await TemporaryVC.saveName(interaction.user.id, newName);
                         await interaction.reply({ content: `チャンネル名を **${newName}** に変更しました。`, flags: MessageFlags.Ephemeral });
                     } else {
                         await interaction.reply({ content: 'チャンネルが見つかりませんでした。', flags: MessageFlags.Ephemeral });

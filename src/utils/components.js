@@ -6,7 +6,7 @@ function createVCConfigContainer(channelId, userId) {
         .addTextDisplayComponents(
             new TextDisplayBuilder()
                 .setContent(
-                    `## :tools: 一時的なVCを生成しました \n <@${userId}> さん、ようこそ! - 一時的なVCはすべてのユーザーが退出すると削除されます。\n - 作成者のみが下のボタンからチャンネル名を変更できます。`,
+                    `## :tools: 一時的なVCを生成しました \n <@${userId}> さん、ようこそ! \n - 一時的なVCはすべてのユーザーが退出すると削除されます。\n - 作成者のみが下のボタンからチャンネル名を変更できます。`,
                 ),
         )
         .addSeparatorComponents(
