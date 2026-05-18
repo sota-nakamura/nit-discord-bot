@@ -50,10 +50,12 @@ module.exports = {
             // update or insert in database via model
             await RolePrefix.set(role.id, prefix);
 
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
             const members = await interaction.guild.members.fetch();
             for (const member of members.values()) {
                 if (member.roles.cache.has(role.id)) {
-                    const targetNickname = `[${prefix}]${member.user.username}`.slice(0, 32);
+                    const targetNickname = `[${prefix}]${member.nickname || member.user.displayName}`.slice(0, 32);
                     if (member.nickname !== targetNickname) {
                         if (member.manageable || member.id === interaction.client.user.id) {
                             try {
@@ -70,7 +72,7 @@ module.exports = {
                     }
                 }
             }
-            interaction.reply({ content: `ロール **${role.name}** の接頭辞を **${prefix}** に設定しました。`, flags: MessageFlags.Ephemeral });
+            interaction.editReply({ content: `ロール **${role.name}** の接頭辞を **${prefix}** に設定しました。`, flags: MessageFlags.Ephemeral });
         } else if (subcommand === "remove") {
             const role = interaction.options.getRole("role");
 
@@ -89,8 +91,7 @@ module.exports = {
                 if (member.nickname && member.nickname.startsWith(`[${prefix}]`)) {
                     if (member.manageable || member.id === interaction.client.user.id) {
                         try {
-                            const newNickname = member.nickname.slice(`[${prefix}]`.length);
-                            await member.setNickname(newNickname || null);
+                            await member.setNickname(null);
                             updateCount++;
                         } catch (error) {
                             if (error.code === 50013) {
@@ -139,7 +140,7 @@ module.exports = {
 
                 if (prefixData) {
                     const prefix = prefixData.prefix;
-                    const targetNickname = `[${prefix}]${member.user.username}`.slice(0, 32);
+                    const targetNickname = `[${prefix}]${member.user.nickname || member.user.displayName}`.slice(0, 32);
 
                     if (member.nickname !== targetNickname) {
                         if (member.manageable || member.id === interaction.client.user.id) {
