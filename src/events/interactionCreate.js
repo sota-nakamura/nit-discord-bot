@@ -4,7 +4,7 @@ const TemporaryVC = require("../models/TemporaryVC");
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
-        if (interaction.isChatInputCommand()) {
+        if (interaction.isChatInputCommand() || interaction.isUserContextMenuCommand() || interaction.isContextMenuCommand()) {
             const command = interaction.client.commands.get(interaction.commandName);
             if (!command) {
                 console.error(`No command matching ${interaction.commandName} was found.`);
@@ -17,7 +17,7 @@ module.exports = {
                 console.error(error);
                 let errorMsg = "エラーが発生しました。";
                 if (error.name === "GatewayRateLimitError") {
-                    errorMsg = "エラー: コマンドの使用間隔が短すぎます。\nしばらく待ってから再試行してください。";
+                    errorMsg = `エラー: コマンドの使用間隔が短すぎます。\n${Math.floor(error.data.retry_after)}秒待ってから再試行してください。`;
                 } else if (error.code === 50013) {
                     errorMsg = "エラー: この操作を行う権限がありません。";
                 }
