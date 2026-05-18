@@ -1,6 +1,6 @@
-const { Events, ChannelType, PermissionFlagsBits, MessageFlags, AllowedMentionsTypes } = require('discord.js');
-const TemporaryVC = require('../models/TemporaryVC');
-const { createVCConfigContainer } = require('../utils/components');
+const { Events, ChannelType, PermissionFlagsBits, MessageFlags, AllowedMentionsTypes } = require("discord.js");
+const TemporaryVC = require("../models/TemporaryVC");
+const { createVCConfigContainer } = require("../utils/components");
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -35,7 +35,7 @@ module.exports = {
                     flags: MessageFlags.IsComponentsV2,
                 });
             } catch (error) {
-                console.error('VC作成またはメッセージ送信に失敗しました:', error);
+                console.error("VC作成またはメッセージ送信に失敗しました:", error);
             }
         }
 
@@ -59,7 +59,7 @@ module.exports = {
                         TemporaryVC.delete(oldState.channelId);
                     }
                 } catch (error) {
-                    console.error('VCの削除に失敗しました:', error);
+                    console.error("VCの削除に失敗しました:", error);
                 }
             }
         }

@@ -1,12 +1,12 @@
-require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
-const http = require('http');
-const querystring = require('node:querystring');
-const { loadCommands } = require('./handlers/commandHandler');
-const { loadEvents } = require('./handlers/eventHandler');
-const { REST, Routes } = require('discord.js');
-const fs = require('node:fs');
-const path = require('node:path');
+require("dotenv").config();
+const { Client, GatewayIntentBits } = require("discord.js");
+const http = require("http");
+const querystring = require("node:querystring");
+const { loadCommands } = require("./handlers/commandHandler");
+const { loadEvents } = require("./handlers/eventHandler");
+const { REST, Routes } = require("discord.js");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
@@ -62,7 +62,7 @@ http.createServer((req, res) => {
         await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
         console.log(`Successfully reloaded application (/) commands.`);
     } catch (error) {
-        console.error('Failed to reload commands:', error);
+        console.error("Failed to reload commands:", error);
     }
 });
 

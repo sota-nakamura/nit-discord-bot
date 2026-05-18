@@ -1,4 +1,4 @@
-const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SectionBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ContainerBuilder, TextDisplayBuilder, SeparatorBuilder, SectionBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 
 function createVCConfigContainer(channelId, userId) {
     return new ContainerBuilder()
@@ -16,12 +16,12 @@ function createVCConfigContainer(channelId, userId) {
             new SectionBuilder()
                 .addTextDisplayComponents(
                     new TextDisplayBuilder()
-                        .setContent('### チャンネル名の変更')
+                        .setContent("### チャンネル名の変更")
                 )
                 .setButtonAccessory(
                     new ButtonBuilder()
                         .setCustomId(`channelName_${channelId}`)
-                        .setLabel('設定')
+                        .setLabel("設定")
                         .setStyle(ButtonStyle.Primary)
                 )
         );
