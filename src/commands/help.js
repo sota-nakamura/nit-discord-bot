@@ -23,7 +23,6 @@ module.exports = {
                 { name: "ユーザーの情報を取得する", value: "ユーザーの情報を取得する" }
             )
             .setColor(0x0099FF);
-
         const pages = [helpEmbed1, helpEmbed2];
         let currentPage = 0;
 
