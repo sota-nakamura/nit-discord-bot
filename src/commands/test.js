@@ -23,12 +23,6 @@ module.exports = {
             subcommand
                 .setName("activity")
                 .setDescription("test the activity message")
-                .addUserOption(option =>
-                    option
-                        .setName("member")
-                        .setDescription("the member to check activity")
-                        .setRequired(true)
-                )
         ),
     async execute(interaction) {
         if (interaction.user.username !== "satoimo_satosi") {
@@ -39,6 +33,11 @@ module.exports = {
         }
         const subcommand = interaction.options.getSubcommand();
         if (subcommand === "join") {
+            interaction.reply({
+                content: "なんもないっすね",
+                flags: [MessageFlags.Ephemeral]
+            });
+            /*
             await interaction.deferReply({
                 flags: [MessageFlags.Ephemeral]
             });
@@ -92,26 +91,55 @@ module.exports = {
                 files: [attachment],
                 flags: [MessageFlags.Ephemeral]
             });
+            */
         } else if (subcommand === "activity") {
-            const optionMember = interaction.options.getMember("member");
-            const presence = optionMember.presence;
-
-            if (!presence) {
-                return interaction.reply({
-                    content: `**${optionMember.user.tag}** のステータス（Presence）を取得できませんでした。オフラインか、Botのインテント設定が不足しています。`,
-                    flags: [MessageFlags.Ephemeral]
-                });
-            }
-
-            const activities = presence.activities;
-            console.log(activities);
-
-            const activityNames = activities.map(a => `**${a.name}**`).join(", ");
-            await interaction.reply({
-                content: `**${optionMember.user.username}** の現在のアクティビティ:\n${activityNames || "なし"}`,
+            /*
+            interaction.reply({
+                content: "なんもないっすね",
                 flags: [MessageFlags.Ephemeral]
+            });
+            */
+            await interaction.deferReply();
+            const guild = interaction.guild;
+            const members = await guild.members.fetch()
+            const lolRoleId = "1469718241600475259"
+            const lolVoiceChannelIds = new Set();
+            const lolPlayerList = [];
+            members.forEach(member => {
+                if (!member.presence || !member.roles.cache.has(lolRoleId)) return;
+                const playingLoL = member.presence.activities.some(activity => activity.applicationId === "401518684763586560");
+                if (playingLoL && member.voice?.channelId) {
+                    lolVoiceChannelIds.add(member.voice.channelId);
+                }
+            });
+
+            let lolPlayerCount = 0;
+            members.forEach(member => {
+                const isPlayingLoL = member.presence?.activities.some(activity => activity.applicationId === "401518684763586560");
+                const isInLoLVoice = member.voice?.channelId && lolVoiceChannelIds.has(member.voice.channelId);
+                const isOffline = !member.presence;
+
+                if (isPlayingLoL || (isInLoLVoice && isOffline && member.roles.cache.has(lolRoleId))) {
+                    lolPlayerCount++;
+                    lolPlayerList.push(`<@${member.id}>`);
+                }
+            });
+            const lolPlayerEmbed = new EmbedBuilder()
+                .setTitle(lolPlayerCount > 5 ? "けっこうLoLやってますね" : "あんまLoLやってないっすね")
+                .setColor(0x0099ff)
+                .setDescription(`現在 ${lolPlayerCount}人がlolやってます`)
+                .addFields({
+                    name: "プレイヤー一覧",
+                    value: lolPlayerList.length > 0 ? "\n - " + lolPlayerList.join("\n - ") : "現在プレイ中の人はいません",
+                })
+                .setFooter({
+                    text: `${interaction.guild.name} | 現在の人数: ${interaction.guild.memberCount}人`,
+                    iconURL: interaction.guild.iconURL(),
+                })
+                .setTimestamp();
+            await interaction.editReply({
+                embeds: [lolPlayerEmbed],
             });
         }
     }
 };
-
