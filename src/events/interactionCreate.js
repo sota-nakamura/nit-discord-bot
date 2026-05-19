@@ -1,4 +1,11 @@
-const { Events, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require("discord.js");
+const {
+    Events,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ActionRowBuilder,
+} = require("discord.js");
 const TemporaryVC = require("../models/TemporaryVC");
 
 module.exports = {
@@ -47,9 +54,8 @@ module.exports = {
 
                 const channelNameInput = new TextInputBuilder()
                     .setCustomId("channelNameInput")
-                    .setLabel("新しいチャンネル名を入力")
                     .setStyle(TextInputStyle.Short)
-                    .setPlaceholder("例: ○○のゲーム配信")
+                    .setPlaceholder("新しいチャンネル名を入力")
                     .setRequired(true);
 
                 const firstActionRow = new ActionRowBuilder().addComponents(channelNameInput);
