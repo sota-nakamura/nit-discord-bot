@@ -7,6 +7,7 @@ const {
     ActionRowBuilder,
 } = require("discord.js");
 const TemporaryVC = require("../models/TemporaryVC");
+const LoLNotification = require("../models/LoLNotification");
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -62,6 +63,20 @@ module.exports = {
                 modal.addComponents(firstActionRow);
 
                 await interaction.showModal(modal);
+            } else if (interaction.customId === "lolNotification") {
+                const userExists = await LoLNotification.exists(interaction.user.id);
+                if (userExists) {
+                    return interaction.reply({ content: "すでに通知を登録しています。", flags: MessageFlags.Ephemeral });
+                }
+                await LoLNotification.subscribe(interaction.user.id);
+                await interaction.reply({ content: "LoLプレイヤー数の通知を登録しました。", flags: MessageFlags.Ephemeral });
+            } else if (interaction.customId === "lolUnsubscribe") {
+                const userExists = await LoLNotification.exists(interaction.user.id);
+                if (!userExists) {
+                    return interaction.reply({ content: "通知を登録していません。", flags: MessageFlags.Ephemeral });
+                }
+                await LoLNotification.unsubscribe(interaction.user.id);
+                await interaction.reply({ content: "LoLプレイヤー数の通知を解除しました。", flags: MessageFlags.Ephemeral });
             }
         } else if (interaction.isModalSubmit()) {
             if (interaction.customId.startsWith("channelNameModal_")) {

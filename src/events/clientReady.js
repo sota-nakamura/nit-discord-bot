@@ -1,5 +1,13 @@
-const { Events, ActivityType, EmbedBuilder } = require("discord.js");
+const {
+    Events,
+    ActivityType,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
+} = require("discord.js");
 const { start15MinScheduler } = require("../utils/scheduler");
+const LoLNotification = require("../models/LoLNotification")
 
 module.exports = {
     name: Events.ClientReady,
@@ -52,8 +60,32 @@ module.exports = {
                         iconURL: guild.iconURL(),
                     })
                     .setTimestamp();
+                const lolNotificationEmbed = new EmbedBuilder()
+                    .setTitle("LoLをプレイしましょう！")
+                    .setColor(0x0099ff)
+                    .setDescription("LoLプレイしましょうね～～～～～～～～～")
+                    .setTimestamp();
 
-                guild.channels.cache.get("1506250458753273969").send({ embeds: [lolPlayerEmbed] });
+                const lolNotificationButton = new ButtonBuilder()
+                    .setCustomId("lolNotification")
+                    .setLabel("通知登録")
+                    .setStyle(ButtonStyle.Primary);
+                const lolUnsubscribeButton = new ButtonBuilder()
+                    .setCustomId("lolUnsubscribe")
+                    .setLabel("通知解除")
+                    .setStyle(ButtonStyle.Danger);
+
+                const subscriberList = LoLNotification.getAll();
+                (await subscriberList).forEach(async (id) => {
+                    await client.users.fetch(id).then((user) => {
+                        if (user.presence?.activities.some(activity => activity.applicationId === "401518684763586560")) {
+                            return;
+                        }
+                        user.send({ embeds: [lolNotificationEmbed], components: [new ActionRowBuilder().addComponents(lolUnsubscribeButton)] });
+                    });
+                });
+
+                guild.channels.cache.get("1506250458753273969").send({ embeds: [lolPlayerEmbed], components: [new ActionRowBuilder().addComponents(lolNotificationButton)] });
                 guild.channels.cache.get(process.env.LOL_CHANNEL_ID).setName(`lolプレイヤー数: ${LoLPlayerCount}`);
             }
         });

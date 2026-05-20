@@ -7,5 +7,6 @@ const db = new Database("database.db");
 db.prepare("CREATE TABLE IF NOT EXISTS role_prefix (role_id TEXT, prefix TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS temporary_vcs (channel_id TEXT PRIMARY KEY, creator_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS vc_prefs (user_id TEXT PRIMARY KEY, name TEXT)").run();
+db.prepare("CREATE TABLE IF NOT EXISTS lol_notification (user_id TEXT PRIMARY KEY)").run();
 
 module.exports = db;
