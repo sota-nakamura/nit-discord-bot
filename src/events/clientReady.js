@@ -74,16 +74,16 @@ module.exports = {
                     .setCustomId("lolUnsubscribe")
                     .setLabel("通知解除")
                     .setStyle(ButtonStyle.Danger);
-
-                const subscriberList = LoLNotification.getAll();
-                (await subscriberList).forEach(async (id) => {
-                    await client.users.fetch(id).then((user) => {
-                        if (user.presence?.activities.some(activity => activity.applicationId === "401518684763586560")) {
-                            return;
+                const subscriberList = await LoLNotification.getAll();
+                for (const subscriber of subscriberList) {
+                    const member = await guild.members.fetch(subscriber.user_id).catch(() => null);
+                    if (member) {
+                        const isPlayingLoL = member.presence?.activities.some(activity => activity.applicationId === "401518684763586560");
+                        if (!isPlayingLoL) {
+                            await member.send({ embeds: [lolNotificationEmbed], components: [new ActionRowBuilder().addComponents(lolUnsubscribeButton)] });
                         }
-                        user.send({ embeds: [lolNotificationEmbed], components: [new ActionRowBuilder().addComponents(lolUnsubscribeButton)] });
-                    });
-                });
+                    }
+                }
 
                 guild.channels.cache.get("1506250458753273969").send({ embeds: [lolPlayerEmbed], components: [new ActionRowBuilder().addComponents(lolNotificationButton)] });
                 guild.channels.cache.get(process.env.LOL_CHANNEL_ID).setName(`lolプレイヤー数: ${LoLPlayerCount}`);
