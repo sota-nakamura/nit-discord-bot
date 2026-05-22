@@ -4,9 +4,18 @@ const http = require("http");
 const querystring = require("node:querystring");
 const { loadCommands } = require("./handlers/commandHandler");
 const { loadEvents } = require("./handlers/eventHandler");
+const { loadInteractions } = require("./handlers/interactionHandler");
 const { REST, Routes } = require("discord.js");
 const fs = require("node:fs");
 const path = require("node:path");
+
+process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception thrown:", error);
+});
 
 const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
@@ -31,6 +40,7 @@ const client = new Client({
 // Load handlers
 loadCommands(client);
 loadEvents(client);
+loadInteractions(client);
 
 // HTTP Server (Keep-alive for hosting)
 http.createServer((req, res) => {
@@ -50,7 +60,7 @@ http.createServer((req, res) => {
         });
     } else {
         res.writeHead(200, { "Content-Type": "text/plain" });
-        res.end("Discord Bot is Operating!");
+        res.send("Discord Bot is Operating!");
     }
 }).listen(process.env.PORT, async () => {
     console.log("Server is running on port " + (process.env.PORT));

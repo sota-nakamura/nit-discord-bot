@@ -35,6 +35,11 @@ module.exports = {
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(index === 0),
                 new ButtonBuilder()
+                    .setCustomId("page_number")
+                    .setLabel(`${index + 1} / ${pages.length}`)
+                    .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(true),
+                new ButtonBuilder()
                     .setCustomId("next_page")
                     .setEmoji("▶")
                     .setStyle(ButtonStyle.Primary)
@@ -76,9 +81,15 @@ module.exports = {
                     .setStyle(ButtonStyle.Secondary)
                     .setDisabled(true),
                 new ButtonBuilder()
+                    .setCustomId("page_number")
+                    .setLabel(`${currentPage + 1} / ${pages.length}`)
+                    .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(true),
+                new ButtonBuilder()
                     .setCustomId("next_page")
                     .setEmoji("▶")
                     .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(index === pages.length - 1)
                     .setDisabled(true)
             );
             interaction.editReply({ components: [disabledRow] }).catch(() => { });
