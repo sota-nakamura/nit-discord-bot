@@ -16,11 +16,13 @@ module.exports = {
         console.log(`Ready! Logged in as ${client.user.tag}`);
         client.user.setPresence({
             status: "online",
-            activities: [{ name: "実は世界進出を狙っている", type: ActivityType.Custom }]
+            activities: [{ name: "情報統合思念体様〜♥", type: ActivityType.Custom }]
         });
 
+        /*
         start15MinScheduler({
             name: "LoLプレイヤーカウント",
+            onlyProduction: true,
             process: async () => {
                 const guild = client.guilds.cache.first();
                 const members = await guild.members.fetch()
@@ -29,7 +31,7 @@ module.exports = {
                 const lolPlayerList = [];
                 members.forEach(member => {
                     if (!member.presence || !member.roles.cache.has(lolRoleId)) return;
-                    const playingLoL = member.presence.activities.some(activity => activity.applicationId === "401518684763586560");
+                    const playingLoL = member.presence.activities.some(activity => activity.applicationId === ("401518684763586560" || "1402418696126992445"));
                     if (playingLoL && member.voice?.channelId) {
                         lolVoiceChannelIds.add(member.voice.channelId);
                     }
@@ -89,5 +91,7 @@ module.exports = {
                 guild.channels.cache.get(process.env.LOL_CHANNEL_ID).setName(`lolプレイヤー数: ${LoLPlayerCount}`);
             }
         });
+        */
+
     },
 };
