@@ -8,8 +8,7 @@ module.exports = {
         // Create temporary VC
         if (newState.channelId === "1499398070230712410" && oldState.channelId !== newState.channelId && newState.channel.members.size === 1) {
             try {
-                const savedName = await TemporaryVC.getName(newState.member.user.id);
-                console.log(savedName);
+                const savedName = await TemporaryVC.getSavedChannelName(newState.member.user.id);
                 const newChannelName = savedName?.name || `${newState.member.user.displayName}のVC`;
                 const newChannel = await newState.guild.channels.create({
                     name: newChannelName,

@@ -18,7 +18,11 @@ class TemporaryVC {
         }
     }
 
-    static getName(userId) {
+    static get(channelId) {
+        return db.prepare("SELECT * FROM temporary_vcs WHERE channel_id = ?").get(channelId);
+    }
+
+    static getSavedChannelName(userId) {
         return db.prepare("SELECT name FROM vc_prefs WHERE user_id = ?").get(userId);
     }
 
