@@ -60,7 +60,7 @@ http.createServer((req, res) => {
         });
     } else {
         res.writeHead(200, { "Content-Type": "text/plain" });
-        res.send("Discord Bot is Operating!");
+        res.end("Discord Bot is Operating!");
     }
 }).listen(process.env.PORT, async () => {
     console.log("Server is running on port " + (process.env.PORT));
