@@ -6,6 +6,8 @@ const {
 const Canvas = require('@napi-rs/canvas');
 const path = require('path');
 
+Canvas.GlobalFonts.registerFromPath(path.join(__dirname, '..', '..', 'assets', 'fonts', 'NotoSansJP-Bold.ttf'), 'Noto Sans JP');
+
 module.exports = {
     name: Events.GuildMemberAdd,
     async execute(member) {
@@ -38,10 +40,10 @@ module.exports = {
         context.drawImage(avatar, avatarX - (avatarSize / 2), avatarY - (avatarSize / 2), avatarSize, avatarSize);
         context.restore();
 
-        context.font = "bold 28px sans-serif";
+        context.font = "bold 28px 'Noto Sans JP', sans-serif";
         context.fillStyle = "#ffffff";
         context.textAlign = "center";
-        context.fillText(member.user.username, canvas.width / 2, 195);
+        context.fillText(member.user.displayName, canvas.width / 2, 195);
 
         const attachment = new AttachmentBuilder(await canvas.encode('png'), { name: 'profile-image.png' });
         const joinEmbed = new EmbedBuilder()
@@ -50,10 +52,17 @@ module.exports = {
             .setColor(0x0099ff)
             .setFooter({
                 text: `${member.guild.name} | 現在の人数: ${member.guild.memberCount}人`,
-                iconURL: member.guild.iconURL(),
+                iconURL: guild => guild ? guild.iconURL() : null, // 安全対策
             })
             .setImage("attachment://profile-image.png")
             .setTimestamp();
+
+        if (joinEmbed.data.footer) {
+            joinEmbed.setFooter({
+                text: `${member.guild.name} | 現在の人数: ${member.guild.memberCount}人`,
+                iconURL: member.guild.iconURL(),
+            });
+        }
 
         await member.guild.channels.cache.get(process.env.WELCOME_CHANNEL_ID).send({
             embeds: [joinEmbed],
