@@ -8,10 +8,14 @@ function loadEvents(client) {
     for (const file of eventFiles) {
         const filePath = path.join(eventsPath, file);
         const event = require(filePath);
-        if (event.once) {
-            client.once(event.name, (...args) => event.execute(...args));
+        if (event.onlyProduction && process.env.NODE_ENV === "production") {
+            return;
         } else {
-            client.on(event.name, (...args) => event.execute(...args));
+            if (event.once) {
+                client.once(event.name, (...args) => event.execute(...args));
+            } else {
+                client.on(event.name, (...args) => event.execute(...args));
+            }
         }
     }
 }
