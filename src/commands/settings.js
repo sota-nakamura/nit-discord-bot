@@ -25,16 +25,23 @@ module.exports = {
         });
 
         collector.on("collect", async (i) => {
-            console.log(i.values);
-            switch (i.values[0]) {
-                case "welcomeMsg":
-                    const welcomeMsgModal = ServerConfig.createWelcomeMsgConfigModal(i.guild.id);
-                    await i.showModal(welcomeMsgModal);
-                    break;
-                case "lolNotification":
-                    const lolNotificationModal = ServerConfig.createLoLConfigModal(i.guild.id)
-                    await i.showModal(lolNotificationModal)
-                    break;
+            if (i.values) {
+                switch (i.values[0]) {
+                    case "welcomeMsg":
+                        const welcomeMsgModal = ServerConfig.createWelcomeMsgConfigModal(i.guild.id);
+                        await i.showModal(welcomeMsgModal);
+                        break;
+                    case "lolNotification":
+                        const lolNotificationModal = ServerConfig.createLoLConfigModal(i.guild.id)
+                        await i.showModal(lolNotificationModal)
+                        break;
+                }
+            } else if (i.customId === "back") {
+                const response = await i.update({
+                    components: [ServerConfig.createServerConfigContainer()],
+                    flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+                    withResponse: true
+                });
             }
         });
 
