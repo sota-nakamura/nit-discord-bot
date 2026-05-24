@@ -1,4 +1,4 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder, MessageFlags } = require("discord.js");
+const { ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder, MessageFlags, CheckboxBuilder } = require("discord.js");
 const TemporaryVC = require("../../models/TemporaryVC");
 
 module.exports = {
@@ -28,8 +28,15 @@ module.exports = {
             .setLabel("チャンネル名を入力")
             .setDescription("このVCのチャンネル名を設定できます")
             .setTextInputComponent(channelNameInput);
-
+        const saveNameCheckbox = new CheckboxBuilder()
+            .setCustomId("saveNameCheckbox")
+            .setDefault(true);
+        const saveNameLabel = new LabelBuilder()
+            .setLabel("チャンネル名を保存")
+            .setDescription("このVCのチャンネル名を保存します")
+            .setCheckboxComponent(saveNameCheckbox);
         modal.addLabelComponents(channelNameLabel);
+        modal.addLabelComponents(saveNameLabel);
 
         await interaction.showModal(modal);
     }

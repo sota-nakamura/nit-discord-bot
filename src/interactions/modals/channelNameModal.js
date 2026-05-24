@@ -14,14 +14,13 @@ module.exports = {
 
         try {
             const channel = await interaction.guild.channels.fetch(channelId);
-            if (channel) {
-                const newName = interaction.fields.getTextInputValue("channelNameInput");
-                await channel.setName(newName);
+            const newName = interaction.fields.getTextInputValue("channelNameInput");
+            await channel.setName(newName);
+            const saveName = interaction.fields.getTextInputValue("saveNameCheckbox");
+            if (saveName) {
                 await TemporaryVC.saveName(interaction.user.id, newName);
-                await interaction.reply({ content: `チャンネル名を **${newName}** に変更しました。`, flags: MessageFlags.Ephemeral });
-            } else {
-                await interaction.reply({ content: "チャンネルが見つかりませんでした。", flags: MessageFlags.Ephemeral });
             }
+            await interaction.reply({ content: `チャンネル名を **${newName}** に変更しました。`, flags: MessageFlags.Ephemeral });
         } catch (error) {
             console.error("チャンネルの取得または名前の変更に失敗しました:", error);
             if (!interaction.replied) {
