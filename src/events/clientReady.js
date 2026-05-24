@@ -19,12 +19,16 @@ module.exports = {
             activities: [{ name: "情報統合思念体様〜♥", type: ActivityType.Custom }]
         });
 
-        /*
         start15MinScheduler({
             name: "LoLプレイヤーカウント",
             onlyProduction: true,
             process: async () => {
-                const guild = client.guilds.cache.first();
+                const guildId = process.env.GUILD_ID;
+                const guild = client.guilds.cache.get(guildId);
+                if (!guild) return;
+
+                const enabled = await LoLNotification.isEnabled(guildId);
+                if (!enabled) return;
                 const members = await guild.members.fetch()
                 const lolRoleId = "1469718241600475259"
                 const lolVoiceChannelIds = new Set();
@@ -91,7 +95,5 @@ module.exports = {
                 guild.channels.cache.get(process.env.LOL_CHANNEL_ID).setName(`lolプレイヤー数: ${LoLPlayerCount}`);
             }
         });
-        */
-
     },
 };
