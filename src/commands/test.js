@@ -115,7 +115,7 @@ module.exports = {
 
             let lolPlayerCount = 0;
             members.forEach(member => {
-                const isPlayingLoL = member.presence?.activities.some(activity => activity.applicationId === "401518684763586560");
+                const isPlayingLoL = member.presence?.activities.some(activity => activity.applicationId === ("401518684763586560" || "1402418696126992445"));
                 const isInLoLVoice = member.voice?.channelId && lolVoiceChannelIds.has(member.voice.channelId);
                 const isOffline = !member.presence;
 
