@@ -4,7 +4,7 @@ const LoLNotification = require("../../models/LoLNotification");
 module.exports = {
     customId: "lolNotification",
     async execute(interaction) {
-        const userExists = await LoLNotification.exists(interaction.user.id);
+        const userExists = await LoLNotification.subscribed(interaction.user.id);
         if (userExists) {
             return interaction.reply({ content: "すでに通知を登録しています。", flags: MessageFlags.Ephemeral });
         }
