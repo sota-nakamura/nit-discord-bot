@@ -36,11 +36,15 @@ module.exports = {
                         await i.showModal(lolNotificationModal)
                         break;
                 }
-            } else if (i.customId === "back") {
+            } else if (i.customId === "cancel") {
                 const response = await i.update({
-                    components: [ServerConfig.createServerConfigContainer()],
-                    flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
-                    withResponse: true
+                    content: "サーバー設定を保存せずに終了しました。",
+                    flags: [MessageFlags.Ephemeral]
+                });
+            } else if (i.customId === "save") {
+                const response = await i.update({
+                    content: "サーバー設定を保存しました。",
+                    flags: [MessageFlags.Ephemeral]
                 });
             }
         });
