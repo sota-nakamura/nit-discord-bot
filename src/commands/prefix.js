@@ -1,10 +1,22 @@
-const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags, EmbedBuilder } = require("discord.js");
+const {
+    SlashCommandBuilder,
+    PermissionFlagsBits,
+    MessageFlags,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle
+} = require("discord.js");
 const RolePrefix = require("../models/RolePrefix");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("prefix")
         .setDescription("ロールごとに名前の先頭につくテキストを管理します")
+        .addSubcommand(subcommand =>
+            subcommand.setName("test")
+                .setDescription("test")
+        )
         .addSubcommand(subcommand =>
             subcommand.setName("add")
                 .setDescription("ロールに接頭辞を設定します")
@@ -43,7 +55,51 @@ module.exports = {
             return interaction.reply({ content: "このコマンドを実行する権限がありません。", flags: MessageFlags.Ephemeral });
         }
 
-        if (subcommand === "add") {
+        if (subcommand === "test") {
+            const prefixList = await RolePrefix.getAll();
+            const PrefixEmbed = new EmbedBuilder()
+                .setColor("#0099ff")
+                .setTitle("ロールの接頭辞設定")
+                .setDescription("ロールに接頭辞を設定します")
+                .addFields(
+                    ...prefixList.map(prefixData => ({
+                        name: `接頭辞: [${prefixData.prefix}]`,
+                        value: `ロール: <@&${prefixData.role_id}>`,
+                    }))
+                );
+            const PrefixControl = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("addPrefix")
+                        .setLabel("接頭辞を追加")
+                        .setStyle(ButtonStyle.Primary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("removePrefix")
+                        .setLabel("接頭辞を削除")
+                        .setStyle(ButtonStyle.Danger)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("applyPrefix")
+                        .setLabel("保存して適用")
+                        .setStyle(ButtonStyle.Success)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("cancel")
+                        .setLabel("キャンセル")
+                        .setStyle(ButtonStyle.Danger)
+                );
+
+            await interaction.reply({
+                embeds: [PrefixEmbed],
+                components: [PrefixControl],
+                flags: [MessageFlags.Ephemeral]
+            });
+        }
+        else if (subcommand === "add") {
             const prefix = interaction.options.getString("prefix");
             const role = interaction.options.getRole("role");
 

@@ -25,16 +25,27 @@ module.exports = {
         });
 
         collector.on("collect", async (i) => {
-            console.log(i.values);
-            switch (i.values[0]) {
-                case "welcomeMsg":
-                    const welcomeMsgModal = ServerConfig.createWelcomeMsgConfigModal(i.guild.id);
-                    await i.showModal(welcomeMsgModal);
-                    break;
-                case "lolNotification":
-                    const lolNotificationModal = ServerConfig.createLoLConfigModal(i.guild.id)
-                    await i.showModal(lolNotificationModal)
-                    break;
+            if (i.values) {
+                switch (i.values[0]) {
+                    case "welcomeMsg":
+                        const welcomeMsgModal = ServerConfig.createWelcomeMsgConfigModal(i.guild.id);
+                        await i.showModal(welcomeMsgModal);
+                        break;
+                    case "lolNotification":
+                        const lolNotificationModal = ServerConfig.createLoLConfigModal(i.guild.id)
+                        await i.showModal(lolNotificationModal)
+                        break;
+                }
+            } else if (i.customId === "cancel") {
+                const response = await i.update({
+                    content: "サーバー設定を保存せずに終了しました。",
+                    flags: [MessageFlags.Ephemeral]
+                });
+            } else if (i.customId === "save") {
+                const response = await i.update({
+                    content: "サーバー設定を保存しました。",
+                    flags: [MessageFlags.Ephemeral]
+                });
             }
         });
 

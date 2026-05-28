@@ -1,5 +1,5 @@
 const { MessageFlags } = require("discord.js");
-const LoLNotification = require("../../models/LoLNotification");
+const LoLNotification = require("../../../models/LoLNotification");
 
 module.exports = {
     customId: "lolUnsubscribe",
