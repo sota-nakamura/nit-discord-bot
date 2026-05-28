@@ -8,213 +8,119 @@ const {
     ButtonStyle
 } = require("discord.js");
 const RolePrefix = require("../models/RolePrefix");
+const Prefix = require("../utils/prefix")
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("prefix")
-        .setDescription("ロールごとに名前の先頭につくテキストを管理します")
-        .addSubcommand(subcommand =>
-            subcommand.setName("test")
-                .setDescription("test")
-        )
-        .addSubcommand(subcommand =>
-            subcommand.setName("add")
-                .setDescription("ロールに接頭辞を設定します")
-                .addStringOption(option =>
-                    option.setName("prefix")
-                        .setDescription("設定するテキスト")
-                        .setRequired(true)
-                )
-                .addRoleOption(option =>
-                    option.setName("role")
-                        .setDescription("接頭辞を設定するロール")
-                        .setRequired(true)
-                )
-        )
-        .addSubcommand(subcommand =>
-            subcommand.setName("remove")
-                .setDescription("ロールの接頭辞を削除します")
-                .addRoleOption(option =>
-                    option.setName("role")
-                        .setDescription("接頭辞を削除するロール")
-                        .setRequired(true)
-                )
-        )
-        .addSubcommand(subcommand =>
-            subcommand.setName("list")
-                .setDescription("ロールの接頭辞一覧を表示します")
-        )
-        .addSubcommand(subcommand =>
-            subcommand.setName("apply")
-                .setDescription("ロールの接頭辞を適用し直します")
-        ),
+        .setDescription("ロールごとに名前の先頭につくテキストを管理します"),
     async execute(interaction) {
-        const subcommand = interaction.options.getSubcommand();
         // check permission
         if (!interaction.member.permissions.has(PermissionFlagsBits.ManageRoles)) {
             return interaction.reply({ content: "このコマンドを実行する権限がありません。", flags: MessageFlags.Ephemeral });
         }
+        const initialPrefixList = await RolePrefix.getAll();
+        const PrefixEmbed = new EmbedBuilder()
+            .setColor("#0099ff")
+            .setTitle("ロールの接頭辞設定")
+            .setDescription("ロールに接頭辞を設定します")
+            .addFields(
+                ...initialPrefixList.map(prefixData => ({
+                    name: `接頭辞: [${prefixData.prefix}]`,
+                    value: `ロール: <@&${prefixData.role_id}>`,
+                }))
+            );
+        const PrefixControl = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("addPrefix")
+                    .setLabel("接頭辞を追加")
+                    .setStyle(ButtonStyle.Primary)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("removePrefix")
+                    .setLabel("接頭辞を削除")
+                    .setStyle(ButtonStyle.Danger)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("applyPrefix")
+                    .setLabel("保存して適用")
+                    .setStyle(ButtonStyle.Success)
+            )
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId("cancel")
+                    .setLabel("キャンセル")
+                    .setStyle(ButtonStyle.Danger)
+            );
 
-        if (subcommand === "test") {
-            const prefixList = await RolePrefix.getAll();
-            const PrefixEmbed = new EmbedBuilder()
-                .setColor("#0099ff")
-                .setTitle("ロールの接頭辞設定")
-                .setDescription("ロールに接頭辞を設定します")
-                .addFields(
-                    ...prefixList.map(prefixData => ({
-                        name: `接頭辞: [${prefixData.prefix}]`,
-                        value: `ロール: <@&${prefixData.role_id}>`,
-                    }))
-                );
-            const PrefixControl = new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId("addPrefix")
-                        .setLabel("接頭辞を追加")
-                        .setStyle(ButtonStyle.Primary)
-                )
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId("removePrefix")
-                        .setLabel("接頭辞を削除")
-                        .setStyle(ButtonStyle.Danger)
-                )
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId("applyPrefix")
-                        .setLabel("保存して適用")
-                        .setStyle(ButtonStyle.Success)
-                )
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId("cancel")
-                        .setLabel("キャンセル")
-                        .setStyle(ButtonStyle.Danger)
-                );
+        const response = await interaction.reply({
+            embeds: [PrefixEmbed],
+            components: [PrefixControl],
+            flags: MessageFlags.Ephemeral,
+            withResponse: true
+        });
 
-            await interaction.reply({
-                embeds: [PrefixEmbed],
-                components: [PrefixControl],
-                flags: [MessageFlags.Ephemeral]
-            });
-        }
-        else if (subcommand === "add") {
-            const prefix = interaction.options.getString("prefix");
-            const role = interaction.options.getRole("role");
+        const collector = response.resource.message.createMessageComponentCollector({
+            filter: (i) => i.user.id === interaction.user.id,
+            time: 60000
+        });
 
-            // update or insert in database via model
-            await RolePrefix.set(role.id, prefix);
-
-            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-            const members = await interaction.guild.members.fetch();
-            for (const member of members.values()) {
-                if (member.roles.cache.has(role.id)) {
-                    const targetNickname = `[${prefix}]${member.nickname || member.user.displayName}`.slice(0, 32);
-                    if (member.nickname !== targetNickname) {
-                        if (member.manageable || member.id === interaction.client.user.id) {
-                            try {
-                                await member.setNickname(targetNickname);
-                                updateCount++;
-                            } catch (error) {
-                                if (error.code === 50013) {
-                                    console.error("このユーザーのニックネーム変更権限がありません:", member.user.username, error);
-                                } else {
-                                    console.error("ニックネームの変更に失敗しました:", member.user.username, error);
-                                }
-                            }
-                        }
-                    }
-                }
+        collector.on("collect", async (i) => {
+            switch (i.customId) {
+                case "addPrefix":
+                    const addPrefixModal = Prefix.createAddPrefixModal();
+                    await i.showModal(addPrefixModal);
+                    break;
+                case "removePrefix":
+                    const removePrefixModal = Prefix.createRemovePrefixModal();
+                    await i.showModal(removePrefixModal);
+                    break;
+                case "applyPrefix":
+                    await i.deferReply({ flags: MessageFlags.Ephemeral });
+                    const prefixList = await RolePrefix.getAll();
+                    const prefixManager = new Prefix(prefixList, interaction.client);
+                    await prefixManager.apply(interaction.guild);
+                    await i.editReply({ content: "保存して適用しました。" });
+                    collector.stop("applied");
+                    break;
+                case "cancel":
+                    await i.deferUpdate();
+                    await RolePrefix.restore(initialPrefixList);
+                    collector.stop("cancelled");
+                    break;
             }
-            interaction.editReply({ content: `ロール **${role.name}** の接頭辞を **${prefix}** に設定しました。`, flags: MessageFlags.Ephemeral });
-        } else if (subcommand === "remove") {
-            const role = interaction.options.getRole("role");
-
-            const prefixData = await RolePrefix.get(role.id);
-            if (!prefixData) {
-                return interaction.reply({ content: `ロール **${role.name}** には接頭辞が設定されていません。`, flags: MessageFlags.Ephemeral });
+        });
+        collector.on("end", async (collected, reason) => {
+            if (reason === "applied") {
+                const prefixList = await RolePrefix.getAll();
+                const PrefixEmbed = new EmbedBuilder()
+                    .setColor("#00ff00")
+                    .setTitle("ロールの接頭辞設定（適用済み）")
+                    .setDescription("ロールの接頭辞設定が保存・適用されました。")
+                    .addFields(
+                        ...prefixList.map(prefixData => ({
+                            name: `接頭辞: [${prefixData.prefix}]`,
+                            value: `ロール: <@&${prefixData.role_id}>`,
+                        }))
+                    );
+                await interaction.editReply({ embeds: [PrefixEmbed], components: [] }).catch(() => { });
+            } else if (reason === "cancelled") {
+                const PrefixEmbed = new EmbedBuilder()
+                    .setColor("#ff0000")
+                    .setTitle("ロールの接頭辞設定（キャンセル済み）")
+                    .setDescription("変更はすべて破棄されました。");
+                await interaction.editReply({ embeds: [PrefixEmbed], components: [] }).catch(() => { });
+            } else {
+                await RolePrefix.restore(initialPrefixList);
+                const PrefixEmbed = new EmbedBuilder()
+                    .setColor("#ff0000")
+                    .setTitle("ロールの接頭辞設定（タイムアウト）")
+                    .setDescription("タイムアウトしたため、すべての変更を破棄して終了しました。");
+                await interaction.editReply({ embeds: [PrefixEmbed], components: [] }).catch(() => { });
             }
-            const prefix = prefixData.prefix;
-
-            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-            // remove from all members
-            const members = await interaction.guild.members.fetch();
-            let updateCount = 0;
-            for (const member of members.values()) {
-                if (member.nickname && member.nickname.startsWith(`[${prefix}]`)) {
-                    if (member.manageable || member.id === interaction.client.user.id) {
-                        try {
-                            await member.setNickname(null);
-                            updateCount++;
-                        } catch (error) {
-                            if (error.code === 50013) {
-                                console.error("このユーザーのニックネーム変更権限がありません:", member.user.username, error);
-                            } else {
-                                console.error("ニックネームの変更に失敗しました:", member.user.username, error);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // update or insert in database via model
-            await RolePrefix.remove(role.id);
-
-            await interaction.editReply({ content: `ロール **${role.name}** の接頭辞を削除しました（${updateCount} 人のニックネームを更新）。` });
-        } else if (subcommand === "list") {
-            const prefixes = await RolePrefix.getAll();
-            const embed = new EmbedBuilder()
-                .setTitle("ロールの接頭辞一覧")
-                .setColor("#0099ff");
-            const description = prefixes.map(prefix => `<@&${prefix.role_id}>: **${prefix.prefix}**\n`).join("");
-            embed.setDescription(description === "" ? "まだ設定されていません。" : description);
-            interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
-        } else if (subcommand === "apply") {
-            const prefixes = await RolePrefix.getAll();
-            const guild = interaction.guild;
-            let updateCount = 0;
-            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-            // Fetch all roles to get their positions
-            const allRoles = await guild.roles.fetch();
-
-            // Sort prefixes by role position descending
-            const sortedPrefixes = prefixes
-                .map(p => {
-                    const role = allRoles.get(p.role_id);
-                    return { ...p, position: role ? role.position : -1 };
-                })
-                .sort((a, b) => b.position - a.position);
-
-            const members = await guild.members.fetch();
-            for (const member of members.values()) {
-                // Find the first (highest position) role in sortedPrefixes that the member has
-                const prefixData = sortedPrefixes.find(p => member.roles.cache.has(p.role_id));
-
-                if (prefixData) {
-                    const prefix = prefixData.prefix;
-                    const targetNickname = `[${prefix}]${member.user.nickname || member.user.displayName}`.slice(0, 32);
-
-                    if (member.nickname !== targetNickname) {
-                        if (member.manageable || member.id === interaction.client.user.id) {
-                            try {
-                                await member.setNickname(targetNickname);
-                                updateCount++;
-                            } catch (error) {
-                                if (error.code === 50013) {
-                                    console.error("このユーザーのニックネーム変更権限がありません:", member.user.username, error);
-                                } else {
-                                    console.error("ニックネームの変更に失敗しました:", member.user.username, error);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            await interaction.editReply({ content: `${updateCount} 人のユーザーにロールの接頭辞を適用しました。` });
-        }
+        });
     },
 };

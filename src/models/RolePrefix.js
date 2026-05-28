@@ -21,6 +21,14 @@ class RolePrefix {
     static async getAll() {
         return await db.prepare("SELECT * FROM role_prefix").all();
     }
+
+    static async restore(prefixes) {
+        db.prepare("DELETE FROM role_prefix").run();
+        const insert = db.prepare("INSERT INTO role_prefix (role_id, prefix) VALUES (?, ?)");
+        for (const p of prefixes) {
+            insert.run(p.role_id, p.prefix);
+        }
+    }
 }
 
 module.exports = RolePrefix;

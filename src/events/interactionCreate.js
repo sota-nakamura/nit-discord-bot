@@ -54,12 +54,18 @@ module.exports = {
             }
         } catch (error) {
             console.error("Error handling interaction:", error);
+            let errorMsg = "エラーが発生しました。";
+            if (error.name === "GatewayRateLimitError") {
+                errorMsg = `エラー: コマンドの使用間隔が短すぎます。\n${Math.floor(error.data.retry_after)}秒待ってから再試行してください。`;
+            } else if (error.code === 50013) {
+                errorMsg = "エラー: この操作を行う権限がありません。";
+            }
             try {
                 if (typeof interaction.reply === "function") {
                     if (interaction.replied || interaction.deferred) {
-                        await interaction.followUp({ content: "エラーが発生しました。", flags: MessageFlags.Ephemeral }).catch(() => null);
+                        await interaction.followUp({ content: errorMsg, flags: MessageFlags.Ephemeral }).catch(() => null);
                     } else {
-                        await interaction.reply({ content: "エラーが発生しました。", flags: MessageFlags.Ephemeral }).catch(() => null);
+                        await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral }).catch(() => null);
                     }
                 }
             } catch (e) {
