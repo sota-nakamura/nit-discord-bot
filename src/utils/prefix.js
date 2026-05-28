@@ -126,3 +126,5 @@ class Prefix {
         return modal;
     }
 }
+
+module.exports = Prefix;
