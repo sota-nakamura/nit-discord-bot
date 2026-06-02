@@ -17,6 +17,10 @@ class TemporaryVC {
             return db.prepare("INSERT INTO vc_prefs (user_id, name, bitrate, member_limit) VALUES (?, ?, ?, ?)").run(userId, name, bitrate, memberLimit);
         }
     }
+    
+    static getPrefs(userId) {
+        return db.prepare("SELECT * from vc_prefs WHERE user_id = ?").run(userId)
+    }
 
     static get(channelId) {
         return db.prepare("SELECT * FROM temporary_vcs WHERE channel_id = ?").get(channelId);
