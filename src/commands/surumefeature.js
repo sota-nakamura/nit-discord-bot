@@ -8,6 +8,7 @@ const {
     MessageFlags,
     ComponentType
 } = require("discord.js");
+const FunnyVote = require("../models/funnyVote");
 
 module.exports = {
     data: new ContextMenuCommandBuilder()
@@ -82,13 +83,28 @@ module.exports = {
             const BAR_LENGTH = 15;
             const funnyBlocks = totalVotes === 0 ? 0 : Math.round((voteFunnyCount / totalVotes) * BAR_LENGTH);
             const voteBar = "=".repeat(funnyBlocks) + "-".repeat(BAR_LENGTH - funnyBlocks);
+            if (voteFunnyCount > voteNotFunnyCount) {
+                await FunnyVote.incrementFunnyCount(interaction.targetUser.id);
+            } else if (voteNotFunnyCount > voteFunnyCount) {
+                await FunnyVote.incrementNotFunnyCount(interaction.targetUser.id);
+            }
+            const userStatus = await FunnyVote.get(interaction.targetUser.id);
+            const shouldMute = userStatus && userStatus.not_funny_count >= 10;
+            if (shouldMute) {
+                const targetMember = interaction.guild.members.cache.get(interaction.targetUser.id);
+                if (targetMember) {
+                    await targetMember.roles.add("1509784499544915968").catch(console.error);
+                }
+            }
             const resultEmbed = new EmbedBuilder()
                 .setTitle("投票結果")
                 .setDescription(`${interaction.targetUser} は面白い？面白くない？`)
-                .addFields({
-                    name: "結果",
-                    value: `面白い ${voteBar} 面白くない \n**結果:** <@${interaction.targetUser.id}> は${voteFunnyCount > voteNotFunnyCount ? "面白い" : voteNotFunnyCount > voteFunnyCount ? "面白くないゴミ" : "どっちでもない無個性の凡"}w`,
-                })
+                .addFields(
+                    {
+                        name: "結果",
+                        value: `面白い ${voteBar} 面白くない \n**結果:** <@${interaction.targetUser.id}> は${voteFunnyCount > voteNotFunnyCount ? "面白い" : voteNotFunnyCount > voteFunnyCount ? "面白くないゴミ" : "どっちでもない無個性の凡"}w`,
+                    }
+                )
                 .setColor(0x0099ff);
 
             // ボタンを無効化
@@ -106,7 +122,7 @@ module.exports = {
                         .setDisabled(true)
                 );
 
-            await interaction.followUp({
+            await interaction.editReply({
                 content: mentions || undefined,
                 embeds: [resultEmbed],
                 components: [disabledButtons]

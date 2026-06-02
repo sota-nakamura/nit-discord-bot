@@ -9,6 +9,7 @@ const {
 const Canvas = require('@napi-rs/canvas');
 const path = require('path');
 const { execPath } = require("process");
+const db = require("../models/Database");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -23,6 +24,11 @@ module.exports = {
             subcommand
                 .setName("activity")
                 .setDescription("test the activity message")
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("notfunny")
+                .setDescription("test the notfunny status")
         ),
     async execute(interaction) {
         if (interaction.user.username !== "satoimo_satosi") {
@@ -139,6 +145,12 @@ module.exports = {
                 .setTimestamp();
             await interaction.editReply({
                 embeds: [lolPlayerEmbed],
+            });
+        } else if (subcommand === "notfunny") {
+            await db.prepare("INSERT INTO funny_vote (user_id, not_funny_count) VALUES (?, 10)").run(interaction.user.id);
+            interaction.reply({
+                content: "the process was successfully finished.",
+                flags: [MessageFlags.Ephemeral]
             });
         }
     }

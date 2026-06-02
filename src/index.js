@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const http = require("http");
 const querystring = require("node:querystring");
 const { loadCommands } = require("./handlers/commandHandler");
@@ -33,8 +33,10 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildPresences
-    ]
+        GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.DirectMessages
+    ],
+    partials: [Partials.Channel]
 });
 
 // Load handlers

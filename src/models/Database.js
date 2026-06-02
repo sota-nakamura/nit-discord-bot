@@ -10,5 +10,6 @@ db.prepare("CREATE TABLE IF NOT EXISTS vc_prefs (user_id TEXT PRIMARY KEY, name 
 db.prepare("CREATE TABLE IF NOT EXISTS lol_notification (user_id TEXT PRIMARY KEY)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS welcome_msg (guild_id TEXT PRIMARY KEY, message TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS lol_notification_channel (guild_id TEXT PRIMARY KEY, channel_id TEXT)").run();
+db.prepare("CREATE TABLE IF NOT EXISTS funny_vote (user_id TEXT PRIMARY KEY, funny_count INTEGER DEFAULT 0, not_funny_count INTEGER DEFAULT 0)").run();
 
 module.exports = db;
