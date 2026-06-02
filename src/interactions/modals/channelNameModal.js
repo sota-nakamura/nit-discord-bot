@@ -16,7 +16,7 @@ module.exports = {
             const channel = await interaction.guild.channels.fetch(channelId);
             const newName = interaction.fields.getTextInputValue("channelNameInput");
             await channel.setName(newName);
-            const saveName = interaction.fields.getTextInputValue("saveNameCheckbox");
+            const saveName = interaction.fields.getCheckbox("saveNameCheckbox");
             if (saveName) {
                 await TemporaryVC.saveName(interaction.user.id, newName);
             }
