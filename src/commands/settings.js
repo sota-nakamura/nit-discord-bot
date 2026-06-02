@@ -28,7 +28,7 @@ module.exports = {
             if (i.values) {
                 switch (i.values[0]) {
                     case "welcomeMsg":
-                        const welcomeMsgModal = ServerConfig.createWelcomeMsgConfigModal(i.guild.id);
+                        const welcomeMsgModal = await ServerConfig.createWelcomeMsgConfigModal(i.guild.id);
                         await i.showModal(welcomeMsgModal);
                         break;
                     case "lolNotification":

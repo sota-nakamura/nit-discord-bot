@@ -95,7 +95,7 @@ class ServerConfig {
                     )
             )
     }
-    static createWelcomeMsgConfigModal(guildId) {
+    static async createWelcomeMsgConfigModal(guildId) {
         const toggleFeatureCheckbox = new CheckboxBuilder()
             .setCustomId("welcomeMsg_toggle")
             .setDefault(welcomeMsg.exists(guildId))
@@ -109,7 +109,7 @@ class ServerConfig {
             .setRequired(false)
             .setMinLength(0)
             .setMaxLength(1000)
-            .setValue("{user} さん、ようこそ {server} へ！")
+            .setValue((await welcomeMsg.getMsg(guildId)).message || "{user} さん、ようこそ {server} へ！")
 
         const textInputLabel = new LabelBuilder()
             .setLabel("ウェルカムメッセージの内容")
