@@ -37,10 +37,7 @@ module.exports = {
                 if (!button) {
                     button = interaction.client.buttons.find((btn, key) => customId.startsWith(key));
                 }
-
-                if (button) {
-                    await button.execute(interaction);
-                }
+                await button.execute(interaction);
             } else if (interaction.isModalSubmit()) {
                 const customId = interaction.customId;
                 let modal = interaction.client.modals.get(customId);
