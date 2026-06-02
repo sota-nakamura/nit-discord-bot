@@ -29,3 +29,5 @@ class FunnyVote {
     }
 
 }
+
+module.exports = FunnyVote;
