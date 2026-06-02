@@ -1,4 +1,4 @@
-const { Events, ChannelType, PermissionFlagsBits, MessageFlags, AllowedMentionsTypes } = require("discord.js");
+const { Events, ChannelType, PermissionFlagsBits, MessageFlags } = require("discord.js");
 const TemporaryVC = require("../models/TemporaryVC");
 const { createVCConfigContainer } = require("../utils/components");
 
@@ -25,8 +25,10 @@ module.exports = {
                 // Record to database
                 TemporaryVC.create(newChannel.id, newState.member.user.id);
 
+                // move user to temporary VC
                 await newState.member.voice.setChannel(newChannel.id);
 
+                // create VC control panel
                 const channelConfigContainer = createVCConfigContainer(newChannel.id, newState.member.user.id);
 
                 await newChannel.send({
