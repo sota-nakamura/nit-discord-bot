@@ -54,8 +54,7 @@ module.exports = {
 
         const savePreferenceCheckbox = new CheckboxBuilder()
             .setCustomId("savePreferenceCheckbox")
-            .setDefault(true)
-            .setRequired(true);
+            .setDefault(true);
         const savePreferenceLabel = new LabelBuilder()
             .setLabel("設定を保存")
             .setDescription("このVCの設定を保存します")
