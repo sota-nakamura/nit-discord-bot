@@ -9,21 +9,17 @@ class TemporaryVC {
         return !!db.prepare("SELECT 1 FROM temporary_vcs WHERE channel_id = ?").get(channelId);
     }
 
-    static saveName(userId, name) {
+    static save(userId, name, bitrate, memberLimit) {
         const existing = !!db.prepare("SELECT 1 FROM vc_prefs WHERE user_id = ?").get(userId);
         if (existing) {
-            return db.prepare("UPDATE vc_prefs SET name = ? WHERE user_id = ?").run(name, userId);
+            return db.prepare("UPDATE vc_prefs SET name = ?, bitrate = ?, member_limit = ? WHERE user_id = ?").run(name, bitrate, memberLimit, userId);
         } else {
-            return db.prepare("INSERT INTO vc_prefs (user_id, name) VALUES (?, ?)").run(userId, name);
+            return db.prepare("INSERT INTO vc_prefs (user_id, name, bitrate, member_limit) VALUES (?, ?, ?, ?)").run(userId, name, bitrate, memberLimit);
         }
     }
 
     static get(channelId) {
         return db.prepare("SELECT * FROM temporary_vcs WHERE channel_id = ?").get(channelId);
-    }
-
-    static getSavedChannelName(userId) {
-        return db.prepare("SELECT name FROM vc_prefs WHERE user_id = ?").get(userId);
     }
 
     static delete(channelId) {

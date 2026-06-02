@@ -34,11 +34,11 @@ function createVCConfigContainer(channelId, userId) {
             new SectionBuilder()
                 .addTextDisplayComponents(
                     new TextDisplayBuilder()
-                        .setContent("### チャンネル名の変更")
+                        .setContent("### チャンネル設定の変更")
                 )
                 .setButtonAccessory(
                     new ButtonBuilder()
-                        .setCustomId(`channelName_${channelId}`)
+                        .setCustomId(`channelPref_${channelId}`)
                         .setLabel("設定")
                         .setStyle(ButtonStyle.Primary)
                 )
