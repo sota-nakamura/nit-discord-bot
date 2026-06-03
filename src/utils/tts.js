@@ -18,7 +18,6 @@ async function playTTS(connection, channelId, text) {
             connection.subscribe(player);
             player.on("error", (error) => console.error("[ERROR] TTS playback:", error));
         }
-
         const stream = await tts(text, "ja-JP-NanamiNeural");
         const resource = createAudioResource(stream, { inputType: StreamType.WebmOpus });
 

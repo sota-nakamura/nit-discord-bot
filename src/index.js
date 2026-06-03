@@ -6,8 +6,6 @@ const { loadCommands } = require("./handlers/commandHandler");
 const { loadEvents } = require("./handlers/eventHandler");
 const { loadInteractions } = require("./handlers/interactionHandler");
 const { REST, Routes } = require("discord.js");
-const fs = require("node:fs");
-const path = require("node:path");
 
 process.on("unhandledRejection", (reason, promise) => {
     console.error("Unhandled Rejection at:", promise, "reason:", reason);
@@ -17,32 +15,60 @@ process.on("uncaughtException", (error) => {
     console.error("Uncaught Exception thrown:", error);
 });
 
-const token = process.env.TOKEN;
-const clientId = process.env.CLIENT_ID;
+// Load tokens and client IDs for up to 3 bots
+const tokens = [];
+const clientIds = [];
+for (let i = 1; i <= 5; i++) {
+    const tokenVal = process.env[`TOKEN_${i}`];
+    const clientIdVal = process.env[`CLIENT_ID_${i}`] || (i === 1 ? process.env.CLIENT_ID : undefined);
+    if (tokenVal) {
+        tokens.push(tokenVal);
+        clientIds.push(clientIdVal);
+    }
+}
+
 const guildId = process.env.GUILD_ID;
 
-if (!token) {
-    console.log("TOKENを設定してください。");
+if (tokens.length === 0) {
+    console.log("TOKEN_1〜3のいずれかを設定してください。");
     process.exit(0);
 }
 
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildVoiceStates,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildPresences,
-        GatewayIntentBits.DirectMessages
-    ],
-    partials: [Partials.Channel]
-});
+const bots = [];
 
-// Load handlers
-loadCommands(client);
-loadEvents(client);
-loadInteractions(client);
+// Initialize all client instances
+for (let i = 0; i < tokens.length; i++) {
+    const clientInstance = new Client({
+        intents: [
+            GatewayIntentBits.Guilds,
+            GatewayIntentBits.GuildVoiceStates,
+            GatewayIntentBits.GuildMessages,
+            GatewayIntentBits.MessageContent,
+            GatewayIntentBits.GuildMembers,
+            GatewayIntentBits.GuildPresences,
+            GatewayIntentBits.DirectMessages
+        ],
+        partials: [Partials.Channel]
+    });
+
+    bots.push({
+        client: clientInstance,
+        token: tokens[i],
+        clientId: clientIds[i],
+        index: i + 1
+    });
+}
+
+// Bot 1 (index 0) is the Main Bot
+const mainBot = bots[0];
+
+// Load handlers on the Main Bot
+loadCommands(mainBot.client);
+loadEvents(mainBot.client);
+loadInteractions(mainBot.client);
+
+// Attach the bot pool to the main client so event handlers can access it
+mainBot.client.botPool = bots;
 
 // HTTP Server (Keep-alive for hosting)
 http.createServer((req, res) => {
@@ -64,19 +90,28 @@ http.createServer((req, res) => {
         res.writeHead(200, { "Content-Type": "text/plain" });
         res.end("Discord Bot is Operating!");
     }
-}).listen(process.env.PORT, async () => {
-    console.log("Server is running on port " + (process.env.PORT));
+}).listen(process.env.PORT || 3000, async () => {
+    console.log("Server is running on port " + (process.env.PORT || 3000));
 
-    // Auto register commands on start
+    // Auto register commands for the main bot
     try {
-        const commands = Array.from(client.commands.values()).map(c => c.data.toJSON());
-        const rest = new REST().setToken(token);
+        const commands = Array.from(mainBot.client.commands.values()).map(c => c.data.toJSON());
+        const rest = new REST().setToken(mainBot.token);
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
-        await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+        await rest.put(Routes.applicationGuildCommands(mainBot.clientId, guildId), { body: commands });
         console.log(`Successfully reloaded application (/) commands.`);
     } catch (error) {
         console.error("Failed to reload commands:", error);
     }
 });
 
-client.login(token);
+// Login all bots
+for (const bot of bots) {
+    bot.client.login(bot.token)
+        .then(() => {
+            console.log(`Bot ${bot.index} (${bot.client.user.tag}) logged in successfully.`);
+        })
+        .catch(err => {
+            console.error(`Failed to login Bot ${bot.index}:`, err);
+        });
+}

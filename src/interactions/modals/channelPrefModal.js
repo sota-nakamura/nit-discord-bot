@@ -18,7 +18,7 @@ module.exports = {
             const newBitrateInput = interaction.fields.getTextInputValue("channelBitrateInput");
             const newMemberLimitInput = interaction.fields.getTextInputValue("channelMemberLimitInput");
             const notifyLog = interaction.fields.getCheckbox("notifyLogCheckbox") ? 1 : 0;
-            const savePreference = interaction.fields.getCheckbox("savePreferenceCheckbox");
+            const readMessage = interaction.fields.getCheckbox("readMessageCheckbox") ? 1 : 0;
 
             let bitrateBps = channel.bitrate;
             if (newBitrateInput) {
@@ -46,9 +46,7 @@ module.exports = {
                 userLimit: userLimit
             });
 
-            if (savePreference) {
-                await TemporaryVC.save(interaction.user.id, newName, bitrateBps, userLimit, notifyLog);
-            }
+            await TemporaryVC.save(interaction.user.id, newName, bitrateBps, userLimit, notifyLog, readMessage);
             await interaction.reply({ content: `チャンネル設定を変更しました。`, flags: MessageFlags.Ephemeral });
         } catch (error) {
             console.error("チャンネル設定の変更に失敗しました:", error);

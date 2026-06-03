@@ -13,7 +13,6 @@ module.exports = {
     name: Events.ClientReady,
     once: true,
     execute(client) {
-        console.log(`Ready! Logged in as ${client.user.tag}`);
         client.user.setPresence({
             status: "online",
             activities: [{ name: "情報統合思念体様〜♥", type: ActivityType.Custom }]

@@ -8,7 +8,7 @@ db.prepare("CREATE TABLE IF NOT EXISTS role_prefix (role_id TEXT, prefix TEXT)")
 db.prepare("CREATE TABLE IF NOT EXISTS temporary_vcs (channel_id TEXT PRIMARY KEY, creator_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS vc_prefs (user_id TEXT PRIMARY KEY, name TEXT, bitrate INTEGER, member_limit INTEGER, notify_log INTEGER DEFAULT 0)").run();
 try {
-    db.prepare("ALTER TABLE vc_prefs ADD COLUMN notify_log INTEGER DEFAULT 0").run();
+    db.prepare("ALTER TABLE vc_prefs ADD COLUMN read_message INTEGER DEFAULT 0").run();
 } catch (e) {
     // Ignore if column already exists
 }

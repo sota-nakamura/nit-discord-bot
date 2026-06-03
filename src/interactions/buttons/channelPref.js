@@ -57,21 +57,21 @@ module.exports = {
 
         const notifyLogCheckbox = new CheckboxBuilder()
             .setCustomId("notifyLogCheckbox")
-            .setDefault(!!row.notify_log);
+            .setDefault(row?.notify_log);
         const notifyLogLabel = new LabelBuilder()
             .setLabel("参加/退出通知の有効化")
             .setDescription("このVCの参加/退出通知を有効にします")
             .setCheckboxComponent(notifyLogCheckbox);
 
-        const savePreferenceCheckbox = new CheckboxBuilder()
-            .setCustomId("savePreferenceCheckbox")
-            .setDefault(true);
-        const savePreferenceLabel = new LabelBuilder()
-            .setLabel("設定を保存")
-            .setDescription("このVCの設定を保存します")
-            .setCheckboxComponent(savePreferenceCheckbox);
+        const readMessageCheckbox = new CheckboxBuilder()
+            .setCustomId("readMessageCheckbox")
+            .setDefault(row?.read_message);
+        const readMessageLabel = new LabelBuilder()
+            .setLabel("メッセージ読み上げの有効化")
+            .setDescription("このVCのメッセージ読み上げを有効にします")
+            .setCheckboxComponent(readMessageCheckbox);
 
-        modal.addLabelComponents(channelNameLabel, channelBitrateLabel, channelMemberLimitLabel, notifyLogLabel, savePreferenceLabel);
+        modal.addLabelComponents(channelNameLabel, channelBitrateLabel, channelMemberLimitLabel, notifyLogLabel, readMessageLabel);
 
         await interaction.showModal(modal);
     }

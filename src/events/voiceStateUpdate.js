@@ -3,10 +3,13 @@ const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, VoiceConnection
 const TemporaryVC = require("../models/TemporaryVC");
 const { createVCConfigContainer } = require("../utils/components");
 const { playTTS, cleanupPlayer, audioPlayers } = require("../utils/tts");
+const { getAvailableBot, getBotForChannel } = require("../utils/botpool");
 
 module.exports = {
     name: Events.VoiceStateUpdate,
     async execute(oldState, newState) {
+        const botPool = newState.client.botPool || oldState.client.botPool;
+
         // Create temporary VC
         if (newState.channelId === process.env.TEMPVC_CHANNEL_ID && oldState.channelId !== newState.channelId && newState.channel.members.size === 1) {
             try {
@@ -44,37 +47,48 @@ module.exports = {
                 });
 
                 // bot joins the VC and stays permanently
-                const connection = joinVoiceChannel({
-                    channelId: newChannel.id,
-                    guildId: newState.guild.id,
-                    adapterCreator: newState.guild.voiceAdapterCreator,
-                    selfDeaf: true,
-                });
-                const player = createAudioPlayer();
-                connection.subscribe(player);
-                audioPlayers.set(newChannel.id, player);
-                player.on("error", (error) => console.error("[ERROR] TTS playback:", error));
+                const bot = getAvailableBot(newState.guild.id, botPool);
+                if (bot) {
+                    const botGuild = bot.client.guilds.cache.get(newState.guild.id);
+                    if (botGuild) {
+                        const connection = joinVoiceChannel({
+                            channelId: newChannel.id,
+                            guildId: newState.guild.id,
+                            adapterCreator: botGuild.voiceAdapterCreator,
+                            selfDeaf: true,
+                            group: bot.client.user.id
+                        });
+                        const player = createAudioPlayer();
+                        connection.subscribe(player);
+                        audioPlayers.set(newChannel.id, player);
+                        player.on("error", (error) => console.error("[ERROR] TTS playback:", error));
 
-                // auto-reconnect on disconnect
-                connection.on(VoiceConnectionStatus.Disconnected, async () => {
-                    try {
-                        await Promise.race([
-                            entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
-                            entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
-                        ]);
-                    } catch (e) {
-                        // could not auto-reconnect, rejoin manually
-                        if (connection.state.status !== VoiceConnectionStatus.Destroyed) {
+                        // auto-reconnect on disconnect
+                        connection.on(VoiceConnectionStatus.Disconnected, async () => {
                             try {
-                                connection.rejoin();
-                            } catch (err) {
-                                console.error("[ERROR] VC再接続に失敗:", err);
-                                connection.destroy();
-                                cleanupPlayer(newChannel.id);
+                                await Promise.race([
+                                    entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+                                    entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+                                ]);
+                            } catch (e) {
+                                // could not auto-reconnect, rejoin manually
+                                if (connection.state.status !== VoiceConnectionStatus.Destroyed) {
+                                    try {
+                                        connection.rejoin();
+                                    } catch (err) {
+                                        console.error(`[ERROR] Bot ${bot.index} VC再接続に失敗:`, err);
+                                        connection.destroy();
+                                        cleanupPlayer(newChannel.id);
+                                    }
+                                }
                             }
-                        }
+                        });
+                    } else {
+                        console.error(`[ERROR] Bot ${bot.index} is not in the guild ${newState.guild.id}`);
                     }
-                });
+                } else {
+                    console.log("No available bot found in the pool for voice notifications.");
+                }
             } catch (error) {
                 console.error("[ERROR] VC作成またはメッセージ送信に失敗しました:", error);
             }
@@ -87,9 +101,12 @@ module.exports = {
                 if (joinedVC) {
                     const prefs = TemporaryVC.getPrefs(joinedVC.creator_id);
                     if (prefs?.notify_log === 1) {
-                        const connection = getVoiceConnection(newState.guild.id);
-                        if (connection) {
-                            await playTTS(connection, newState.channelId, `${newState.member.nickname}さんが参加しました`);
+                        const bot = getBotForChannel(newState.guild.id, newState.channelId, botPool);
+                        if (bot) {
+                            const connection = getVoiceConnection(newState.guild.id, bot.client.user.id);
+                            if (connection) {
+                                await playTTS(connection, newState.channelId, `${newState.member.nickname || newState.member.user.displayName}さんが参加しました`);
+                            }
                         }
                     }
                 }
@@ -117,9 +134,12 @@ module.exports = {
 
                     try {
                         if (TemporaryVC.exists(oldState.channelId)) {
-                            const connection = getVoiceConnection(oldState.guild.id);
-                            if (connection) {
-                                connection.destroy();
+                            const bot = getBotForChannel(oldState.guild.id, oldState.channelId, botPool);
+                            if (bot) {
+                                const connection = getVoiceConnection(oldState.guild.id, bot.client.user.id);
+                                if (connection) {
+                                    connection.destroy();
+                                }
                             }
                             cleanupPlayer(oldState.channelId);
 
@@ -133,9 +153,12 @@ module.exports = {
                     // Notify member exit (channel still has human members)
                     const prefs = TemporaryVC.getPrefs(createdVC.creator_id);
                     if (prefs?.notify_log === 1) {
-                        const connection = getVoiceConnection(oldState.guild.id);
-                        if (connection) {
-                            await playTTS(connection, oldState.channelId, `${oldState.member.nickname}さんが退出しました`);
+                        const bot = getBotForChannel(oldState.guild.id, oldState.channelId, botPool);
+                        if (bot) {
+                            const connection = getVoiceConnection(oldState.guild.id, bot.client.user.id);
+                            if (connection) {
+                                await playTTS(connection, oldState.channelId, `${oldState.member.nickname || oldState.member.user.displayName}さんが退出しました`);
+                            }
                         }
                     }
                 }
