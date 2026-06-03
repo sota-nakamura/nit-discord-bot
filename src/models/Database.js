@@ -4,7 +4,7 @@ const path = require("node:path");
 const db = new Database("database.db");
 
 // Initialize tables
-db.prepare("DROP TABLE IF EXISTS vc_prefs").run();
+db.prepare("ALTER TABLE vc_prefs ADD COLUMN notify_log INTEGER DEFAULT 0").run();
 db.prepare("CREATE TABLE IF NOT EXISTS role_prefix (role_id TEXT, prefix TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS temporary_vcs (channel_id TEXT PRIMARY KEY, creator_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS vc_prefs (user_id TEXT PRIMARY KEY, name TEXT, bitrate INTEGER, member_limit INTEGER)").run();
