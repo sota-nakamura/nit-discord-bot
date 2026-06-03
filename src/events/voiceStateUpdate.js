@@ -1,6 +1,8 @@
 const { Events, ChannelType, PermissionFlagsBits, MessageFlags } = require("discord.js");
+const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, VoiceConnectionStatus, entersState } = require("@discordjs/voice");
 const TemporaryVC = require("../models/TemporaryVC");
 const { createVCConfigContainer } = require("../utils/components");
+const { playTTS, cleanupPlayer, audioPlayers } = require("../utils/tts");
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -8,12 +10,17 @@ module.exports = {
         // Create temporary VC
         if (newState.channelId === process.env.TEMPVC_CHANNEL_ID && oldState.channelId !== newState.channelId && newState.channel.members.size === 1) {
             try {
-                const savedName = await TemporaryVC.getPrefs(newState.member.user.id).name
-                const newChannelName = savedName?.name || `${newState.member.user.displayName}のVC`;
+                const saved = TemporaryVC.getPrefs(newState.member.user.id);
+                const newChannelName = saved?.name || `${newState.member.user.displayName}のVC`;
+                const newChannelBitrate = saved?.bitrate || 64000;
+                const newChannelMemberLimit = saved?.member_limit || 0;
+
                 const newChannel = await newState.guild.channels.create({
                     name: newChannelName,
                     type: ChannelType.GuildVoice,
                     parent: newState.channel.parent,
+                    bitrate: newChannelBitrate,
+                    userLimit: newChannelMemberLimit,
                     permissionOverwrites: [
                         {
                             id: newState.member.id,
@@ -22,7 +29,7 @@ module.exports = {
                     ],
                 });
 
-                // Record to database
+                // record to database
                 TemporaryVC.create(newChannel.id, newState.member.user.id);
 
                 // move user to temporary VC
@@ -35,14 +42,65 @@ module.exports = {
                     components: [channelConfigContainer],
                     flags: MessageFlags.IsComponentsV2,
                 });
+
+                // bot joins the VC and stays permanently
+                const connection = joinVoiceChannel({
+                    channelId: newChannel.id,
+                    guildId: newState.guild.id,
+                    adapterCreator: newState.guild.voiceAdapterCreator,
+                    selfDeaf: true,
+                });
+                const player = createAudioPlayer();
+                connection.subscribe(player);
+                audioPlayers.set(newChannel.id, player);
+                player.on("error", (error) => console.error("[ERROR] TTS playback:", error));
+
+                // auto-reconnect on disconnect
+                connection.on(VoiceConnectionStatus.Disconnected, async () => {
+                    try {
+                        await Promise.race([
+                            entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+                            entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+                        ]);
+                    } catch (e) {
+                        // could not auto-reconnect, rejoin manually
+                        if (connection.state.status !== VoiceConnectionStatus.Destroyed) {
+                            try {
+                                connection.rejoin();
+                            } catch (err) {
+                                console.error("[ERROR] VC再接続に失敗:", err);
+                                connection.destroy();
+                                cleanupPlayer(newChannel.id);
+                            }
+                        }
+                    }
+                });
             } catch (error) {
-                console.error("VC作成またはメッセージ送信に失敗しました:", error);
+                console.error("[ERROR] VC作成またはメッセージ送信に失敗しました:", error);
             }
         }
 
-        // Delete temporary VC if empty
-        if (oldState.channelId && oldState.channelId !== newState.channelId) {
+        // notify member join
+        if (newState.channelId && oldState.channelId !== newState.channelId && !newState.member.user.bot) {
+            if (newState.channelId !== process.env.TEMPVC_CHANNEL_ID) {
+                const joinedVC = TemporaryVC.get(newState.channelId);
+                if (joinedVC) {
+                    const prefs = TemporaryVC.getPrefs(joinedVC.creator_id);
+                    if (prefs?.notify_log === 1) {
+                        const connection = getVoiceConnection(newState.guild.id);
+                        if (connection) {
+                            await playTTS(connection, newState.channelId, `${newState.member.nickname}さんが参加しました`);
+                        }
+                    }
+                }
+            }
+        }
+
+        // handle member exit & VC deletion (skip if bot)
+        if (oldState.channelId && oldState.channelId !== newState.channelId && !oldState.member.user.bot) {
             let oldChannel = oldState.channel;
+            const createdVC = TemporaryVC.get(oldState.channelId);
+
             if (!oldChannel) {
                 try {
                     oldChannel = await oldState.guild.channels.fetch(oldState.channelId);
@@ -51,16 +109,35 @@ module.exports = {
                 }
             }
 
-            if (oldChannel && oldChannel.members.size === 0) {
-                if (oldState.channelId === "1499398070230712410") return;
+            if (oldChannel) {
+                const humanMembers = oldChannel.members.filter(m => !m.user.bot).size;
 
-                try {
-                    if (TemporaryVC.exists(oldState.channelId)) {
-                        await oldChannel.delete();
-                        TemporaryVC.delete(oldState.channelId);
+                if (humanMembers === 0) {
+                    if (oldState.channelId === process.env.TEMPVC_CHANNEL_ID) return;
+
+                    try {
+                        if (TemporaryVC.exists(oldState.channelId)) {
+                            const connection = getVoiceConnection(oldState.guild.id);
+                            if (connection) {
+                                connection.destroy();
+                            }
+                            cleanupPlayer(oldState.channelId);
+
+                            await oldChannel.delete();
+                            TemporaryVC.delete(oldState.channelId);
+                        }
+                    } catch (error) {
+                        console.error("[ERROR] VCの削除に失敗しました:", error);
                     }
-                } catch (error) {
-                    console.error("VCの削除に失敗しました:", error);
+                } else if (createdVC && !oldState.member.user.bot) {
+                    // Notify member exit (channel still has human members)
+                    const prefs = TemporaryVC.getPrefs(createdVC.creator_id);
+                    if (prefs?.notify_log === 1) {
+                        const connection = getVoiceConnection(oldState.guild.id);
+                        if (connection) {
+                            await playTTS(connection, oldState.channelId, `${oldState.member.nickname}さんが退出しました`);
+                        }
+                    }
                 }
             }
         }

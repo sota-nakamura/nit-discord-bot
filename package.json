@@ -14,10 +14,12 @@
   "author": "Satoimo Satosi",
   "license": "MIT",
   "dependencies": {
+    "@discordjs/voice": "^0.19.2",
     "@napi-rs/canvas": "^1.0.0",
     "better-sqlite3": "^12.9.0",
     "discord.js": "^14.25.1",
-    "dotenv": "^17.3.1"
+    "dotenv": "^17.3.1",
+    "msedge-tts": "^2.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

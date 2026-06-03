@@ -17,6 +17,7 @@ module.exports = {
             const newName = interaction.fields.getTextInputValue("channelNameInput") || `${interaction.user.username}のVC`;
             const newBitrateInput = interaction.fields.getTextInputValue("channelBitrateInput");
             const newMemberLimitInput = interaction.fields.getTextInputValue("channelMemberLimitInput");
+            const notifyLog = interaction.fields.getCheckbox("notifyLogCheckbox") ? 1 : 0;
             const savePreference = interaction.fields.getCheckbox("savePreferenceCheckbox");
 
             let bitrateBps = channel.bitrate;
@@ -46,7 +47,7 @@ module.exports = {
             });
 
             if (savePreference) {
-                await TemporaryVC.save(interaction.user.id, newName, bitrateBps, userLimit);
+                await TemporaryVC.save(interaction.user.id, newName, bitrateBps, userLimit, notifyLog);
             }
             await interaction.reply({ content: `チャンネル設定を変更しました。`, flags: MessageFlags.Ephemeral });
         } catch (error) {

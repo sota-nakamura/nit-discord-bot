@@ -7,6 +7,7 @@ module.exports = {
         const channelId = interaction.customId.split("_")[1];
         const row = TemporaryVC.get(channelId);
         const creatorId = row ? row.creator_id : null;
+        const currentBitrate = row.bitrate ? (row.bitrate / 1000) : interaction.channel.bitrate / 1000;
 
         if (interaction.user.id !== creatorId) {
             return interaction.reply({ content: "作成者のみがチャンネル設定を変更できます。", flags: MessageFlags.Ephemeral });
@@ -33,7 +34,8 @@ module.exports = {
         const channelBitrateInput = new TextInputBuilder()
             .setCustomId("channelBitrateInput")
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder("8000 ~ ")
+            .setPlaceholder("8 ~ 96")
+            .setValue(currentBitrate.toString())
             .setRequired(true)
 
         const channelBitrateLabel = new LabelBuilder()
@@ -45,12 +47,21 @@ module.exports = {
             .setCustomId("channelMemberLimitInput")
             .setStyle(TextInputStyle.Short)
             .setPlaceholder("1 ~ 99")
+            .setValue((row.member_limit || 0).toString())
             .setRequired(true)
 
         const channelMemberLimitLabel = new LabelBuilder()
             .setLabel("チャンネルの最大人数を設定")
-            .setDescription("1 ~ 99で数字のみを入力してください。0で無制限)")
+            .setDescription("1 ~ 99で数字のみを入力してください。(0で無制限)")
             .setTextInputComponent(channelMemberLimitInput);
+
+        const notifyLogCheckbox = new CheckboxBuilder()
+            .setCustomId("notifyLogCheckbox")
+            .setDefault(!!row.notify_log);
+        const notifyLogLabel = new LabelBuilder()
+            .setLabel("参加/退出通知の有効化")
+            .setDescription("このVCの参加/退出通知を有効にします")
+            .setCheckboxComponent(notifyLogCheckbox);
 
         const savePreferenceCheckbox = new CheckboxBuilder()
             .setCustomId("savePreferenceCheckbox")
@@ -59,7 +70,8 @@ module.exports = {
             .setLabel("設定を保存")
             .setDescription("このVCの設定を保存します")
             .setCheckboxComponent(savePreferenceCheckbox);
-        modal.addLabelComponents(channelNameLabel, channelBitrateLabel, channelMemberLimitLabel, savePreferenceLabel);
+
+        modal.addLabelComponents(channelNameLabel, channelBitrateLabel, channelMemberLimitLabel, notifyLogLabel, savePreferenceLabel);
 
         await interaction.showModal(modal);
     }
