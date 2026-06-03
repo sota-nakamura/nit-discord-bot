@@ -39,4 +39,4 @@ async function generateWelcomeImage(member) {
     return attachment;
 }
 
-module.exports = { generateWelcomeImage };
+module.exports = generateWelcomeImage;
