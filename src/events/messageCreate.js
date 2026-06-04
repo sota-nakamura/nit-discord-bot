@@ -1,9 +1,9 @@
 const { Events } = require("discord.js");
+const { getVoiceConnection } = require("@discordjs/voice");
 const FunnyVote = require("../models/funnyVote");
-const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, VoiceConnectionStatus, entersState } = require("@discordjs/voice");
 const TemporaryVC = require("../models/TemporaryVC");
-const { playTTS, cleanupPlayer, audioPlayers } = require("../utils/tts");
-const { getAvailableBot, getBotForChannel } = require("../utils/botpool");
+const { playTTS } = require("../utils/tts");
+const { getBotForChannel } = require("../utils/botpool");
 
 module.exports = {
     name: Events.MessageCreate,
@@ -32,10 +32,9 @@ module.exports = {
                     }
 
                     await message.reply("謝罪が送られてきたのでミュートが解除されました。面白くない判定をされた回数はリセットされています。");
-                } else {
-                    return;
                 }
             }
+            return;
         }
         const tempVC = TemporaryVC.get(message.channelId)
         if (tempVC) {
