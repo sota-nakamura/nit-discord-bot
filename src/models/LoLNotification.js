@@ -24,11 +24,9 @@ class LoLNotification {
     }
     static async enable(guildId, channelId) {
         if (await this.isEnabled(guildId)) {
-            await db.prepare("UPDATE lol_notification_channel SET channel_id = ? WHERE guild_id = ? ").run(channelId, guildId);
+            return;
         }
-        else {
-            await db.prepare("INSERT INTO lol_notification_channel (guild_id, channel_id) VALUES (?, ?) ").run(guildId, channelId);
-        }
+        await db.prepare("INSERT INTO lol_notification_channel (guild_id, channel_id) VALUES (?, ?) ").run(guildId, channelId);
     }
     static async disable(guildId) {
         await db.prepare("DELETE FROM lol_notification_channel WHERE guild_id = ? ").run(guildId);
