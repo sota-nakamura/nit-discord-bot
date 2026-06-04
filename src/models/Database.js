@@ -6,12 +6,18 @@ const db = new Database("database.db");
 // Initialize tables
 db.prepare("CREATE TABLE IF NOT EXISTS role_prefix (role_id TEXT, prefix TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS temporary_vcs (channel_id TEXT PRIMARY KEY, creator_id TEXT)").run();
-db.prepare("CREATE TABLE IF NOT EXISTS vc_prefs (user_id TEXT PRIMARY KEY, name TEXT, bitrate INTEGER, member_limit INTEGER, notify_log INTEGER DEFAULT 0)").run();
+db.prepare("CREATE TABLE IF NOT EXISTS vc_prefs (user_id TEXT PRIMARY KEY, name TEXT, bitrate INTEGER, member_limit INTEGER, notify_log INTEGER DEFAULT 0, read_message INTEGER DEFAULT 0)").run();
+db.prepare("CREATE TABLE IF NOT EXISTS netatweet (guild_id TEXT PRIMARY KEY, display_channel_id TEXT, netatweet_channel_id TEXT, reaction_count INTEGER)").run();
 try {
-    db.prepare("ALTER TABLE vc_prefs ADD COLUMN read_message INTEGER DEFAULT 0").run();
+    const info = db.prepare("PRAGMA table_info(netatweet_list)").all();
+    const userIdPK = info.find(col => col.name === "user_id" && col.pk === 1);
+    if (userIdPK) {
+        db.prepare("DROP TABLE netatweet_list").run();
+    }
 } catch (e) {
-    // Ignore if column already exists
+    // Ignore
 }
+db.prepare("CREATE TABLE IF NOT EXISTS netatweet_list (message_id TEXT PRIMARY KEY, user_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS lol_notification (user_id TEXT PRIMARY KEY)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS welcome_msg (guild_id TEXT PRIMARY KEY, message TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS lol_notification_channel (guild_id TEXT PRIMARY KEY, channel_id TEXT)").run();

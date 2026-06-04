@@ -46,9 +46,14 @@ for (let i = 0; i < tokens.length; i++) {
             GatewayIntentBits.MessageContent,
             GatewayIntentBits.GuildMembers,
             GatewayIntentBits.GuildPresences,
-            GatewayIntentBits.DirectMessages
+            GatewayIntentBits.DirectMessages,
+            GatewayIntentBits.GuildMessageReactions
         ],
-        partials: [Partials.Channel]
+        partials: [
+            Partials.Message,
+            Partials.Channel,
+            Partials.Reaction
+        ],
     });
 
     bots.push({
