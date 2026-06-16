@@ -51,9 +51,23 @@ module.exports = {
                         }
 
                         await displayChannel.send({
-                            content: `${message.author.mention} のネタツイが${reaction.count}人にウケました | <#${message.channel.id}>`,
+                            content: `${message.author.username} のネタツイが${reaction.count}人にウケました | <#${message.channel.id}>`,
                             embeds: [embed]
                         }).catch(console.error);
+                    }
+                } else {
+                    //update star count 
+                    const displayChannel = await message.guild.channels.fetch(config.display_channel_id).catch(() => null);
+                    if (displayChannel) {
+                        const displayMessage = await displayChannel.messages.fetch(message.id).catch(() => null);
+                        if (displayMessage) {
+                            const embed = displayMessage.embeds[0];
+                            embed.data.fields[1].value = `${reaction.emoji.toString()} **${reaction.count}**`;
+                            displayMessage.edit({
+                                content: `${message.author.username} のネタツイが${reaction.count}人にウケました | <#${message.channel.id}>`,
+                                embeds: [embed]
+                            });
+                        }
                     }
                 }
             }
