@@ -23,7 +23,7 @@ module.exports = {
         const PrefixEmbed = new EmbedBuilder()
             .setColor("#0099ff")
             .setTitle("ロールの接頭辞設定")
-            .setDescription("ロールに接頭辞を設定します")
+            .setDescription("ロールに接頭辞を設定します。\n**__変更が完了したら必ず「保存して適用」ボタンを押してください__**")
             .addFields(
                 ...initialPrefixList.map(prefixData => ({
                     name: `接頭辞: [${prefixData.prefix}]`,
@@ -35,21 +35,15 @@ module.exports = {
                 new ButtonBuilder()
                     .setCustomId("addPrefix")
                     .setLabel("接頭辞を追加")
-                    .setStyle(ButtonStyle.Primary)
-            )
-            .addComponents(
+                    .setStyle(ButtonStyle.Primary),
                 new ButtonBuilder()
                     .setCustomId("removePrefix")
                     .setLabel("接頭辞を削除")
-                    .setStyle(ButtonStyle.Danger)
-            )
-            .addComponents(
+                    .setStyle(ButtonStyle.Danger),
                 new ButtonBuilder()
                     .setCustomId("applyPrefix")
                     .setLabel("保存して適用")
-                    .setStyle(ButtonStyle.Success)
-            )
-            .addComponents(
+                    .setStyle(ButtonStyle.Success),
                 new ButtonBuilder()
                     .setCustomId("cancel")
                     .setLabel("キャンセル")
@@ -65,7 +59,8 @@ module.exports = {
 
         const collector = response.resource.message.createMessageComponentCollector({
             filter: (i) => i.user.id === interaction.user.id,
-            time: 60000
+            componentType: ComponentType.Button,
+            time: 300000
         });
 
         collector.on("collect", async (i) => {
@@ -116,7 +111,7 @@ module.exports = {
             } else {
                 await RolePrefix.restore(initialPrefixList);
                 const PrefixEmbed = new EmbedBuilder()
-                    .setColor("#ff0000")
+                    .setColor("#ff9900")
                     .setTitle("ロールの接頭辞設定（タイムアウト）")
                     .setDescription("タイムアウトしたため、すべての変更を破棄して終了しました。");
                 await interaction.editReply({ embeds: [PrefixEmbed], components: [] }).catch(() => { });
