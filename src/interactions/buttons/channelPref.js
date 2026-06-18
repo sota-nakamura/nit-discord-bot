@@ -7,11 +7,15 @@ module.exports = {
         const channelId = interaction.customId.split("_")[1];
         const row = TemporaryVC.get(channelId);
         const creatorId = row ? row.creator_id : null;
-        const currentBitrate = row.bitrate ? (row.bitrate / 1000) : interaction.channel.bitrate / 1000;
 
         if (interaction.user.id !== creatorId) {
             return interaction.reply({ content: "作成者のみがチャンネル設定を変更できます。", flags: MessageFlags.Ephemeral });
         }
+
+        const prefs = creatorId ? TemporaryVC.getPrefs(creatorId) : null;
+        const currentName = prefs?.name || interaction.channel.name;
+        const currentBitrate = prefs?.bitrate ? (prefs.bitrate / 1000) : interaction.channel.bitrate / 1000;
+        const currentLimit = prefs?.member_limit !== undefined ? prefs.member_limit : (interaction.channel.userLimit || 0);
 
         const modal = new ModalBuilder()
             .setCustomId("channelPrefModal_" + channelId)
@@ -21,7 +25,7 @@ module.exports = {
             .setCustomId("channelNameInput")
             .setStyle(TextInputStyle.Short)
             .setPlaceholder("例: 作業、雑談、LoLなど")
-            .setValue(row.name || `${interaction.user.username}のVC`)
+            .setValue(currentName)
             .setRequired(true)
             .setMinLength(1)
             .setMaxLength(100);
@@ -36,7 +40,7 @@ module.exports = {
             .setStyle(TextInputStyle.Short)
             .setPlaceholder("8 ~ 96")
             .setValue(currentBitrate.toString())
-            .setRequired(true)
+            .setRequired(true);
 
         const channelBitrateLabel = new LabelBuilder()
             .setLabel("チャンネルの音質を設定")
@@ -47,8 +51,8 @@ module.exports = {
             .setCustomId("channelMemberLimitInput")
             .setStyle(TextInputStyle.Short)
             .setPlaceholder("1 ~ 99")
-            .setValue((row.member_limit || 0).toString())
-            .setRequired(true)
+            .setValue(currentLimit.toString())
+            .setRequired(true);
 
         const channelMemberLimitLabel = new LabelBuilder()
             .setLabel("チャンネルの最大人数を設定")
@@ -57,7 +61,7 @@ module.exports = {
 
         const notifyLogCheckbox = new CheckboxBuilder()
             .setCustomId("notifyLogCheckbox")
-            .setDefault(row?.notify_log);
+            .setDefault(prefs?.notify_log === 1);
         const notifyLogLabel = new LabelBuilder()
             .setLabel("参加/退出通知の有効化")
             .setDescription("このVCの参加/退出通知を有効にします")
@@ -65,7 +69,7 @@ module.exports = {
 
         const readMessageCheckbox = new CheckboxBuilder()
             .setCustomId("readMessageCheckbox")
-            .setDefault(row?.read_message);
+            .setDefault(prefs?.read_message === 1);
         const readMessageLabel = new LabelBuilder()
             .setLabel("メッセージ読み上げの有効化")
             .setDescription("このVCのメッセージ読み上げを有効にします")
