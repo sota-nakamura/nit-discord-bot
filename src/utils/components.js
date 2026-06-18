@@ -109,7 +109,7 @@ class ServerConfig {
             .setRequired(false)
             .setMinLength(0)
             .setMaxLength(1000)
-            .setValue((await welcomeMsg.getMsg(guildId)).message || "{user} さん、ようこそ {server} へ！")
+            .setValue((await welcomeMsg.getMsg(guildId)) || "{user} さん、ようこそ {server} へ！")
 
         const textInputLabel = new LabelBuilder()
             .setLabel("ウェルカムメッセージの内容")
