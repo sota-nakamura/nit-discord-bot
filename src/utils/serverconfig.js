@@ -2,9 +2,6 @@ const {
     ContainerBuilder,
     TextDisplayBuilder,
     SeparatorBuilder,
-    SectionBuilder,
-    ButtonBuilder,
-    ButtonStyle,
     ActionRowBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
@@ -12,38 +9,14 @@ const {
     TextInputBuilder,
     TextInputStyle,
     LabelBuilder,
-    ModalBuilder
+    ChannelSelectMenuBuilder,
+    ChannelType,
+    ButtonBuilder,
+    ButtonStyle
 } = require("discord.js");
 
 const welcomeMsg = require("./../models/welcomeMsg");
 const LoLNotification = require("./../models/LoLNotification");
-
-function createVCConfigContainer(channelId, userId) {
-    return new ContainerBuilder()
-        .setAccentColor(0x0099ff)
-        .addTextDisplayComponents(
-            new TextDisplayBuilder()
-                .setContent(
-                    `## :tools: 一時的なVCを生成しました \n <@${userId}> さん、ようこそ! \n - 一時的なVCはすべてのユーザーが退出すると削除されます。\n - 作成者のみが下のボタンからチャンネル名を変更できます。`,
-                ),
-        )
-        .addSeparatorComponents(
-            new SeparatorBuilder()
-        )
-        .addSectionComponents(
-            new SectionBuilder()
-                .addTextDisplayComponents(
-                    new TextDisplayBuilder()
-                        .setContent("### チャンネル設定の変更")
-                )
-                .setButtonAccessory(
-                    new ButtonBuilder()
-                        .setCustomId(`channelPref_${channelId}`)
-                        .setLabel("設定")
-                        .setStyle(ButtonStyle.Primary)
-                )
-        );
-}
 
 class ServerConfig {
     static createServerConfigContainer() {
@@ -74,7 +47,10 @@ class ServerConfig {
                                     .setValue("welcomeMsg"),
                                 new StringSelectMenuOptionBuilder()
                                     .setLabel("LoL通知機能の設定")
-                                    .setValue("lolNotification")
+                                    .setValue("lolNotification"),
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel("イベント作成機能の設定")
+                                    .setValue("eventCreate")
                             )
                     )
             )
@@ -138,9 +114,25 @@ class ServerConfig {
         lolNotificationModal.addLabelComponents(toggleFeatureLabel)
         return lolNotificationModal
     }
+    static createEventConfigModal(guildId) {
+        const modal = new ModalBuilder()
+            .setCustomId("eventCreateConfigModal")
+            .setTitle("イベント作成機能の設定")
+
+        const eventNotificationChannelSelectMenu = new ChannelSelectMenuBuilder()
+            .setCustomId("eventNotificationChannel")
+            .setChannelTypes(ChannelType.GuildText)
+            .setPlaceholder("イベント作成時に通知するチャンネルを選択")
+            .setRequired(true)
+
+        const eventNotificationChannelLabel = new LabelBuilder()
+            .setLabel("イベント作成通知チャンネル")
+            .setDescription("イベント作成時に通知するチャンネルを選択します。")
+            .setChannelSelectMenuComponent(eventNotificationChannelSelectMenu)
+
+        modal.addLabelComponents(eventNotificationChannelLabel)
+        return modal
+    }
 }
 
-module.exports = {
-    createVCConfigContainer,
-    ServerConfig
-};
+module.exports = ServerConfig

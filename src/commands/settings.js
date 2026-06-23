@@ -4,9 +4,7 @@ const {
     MessageFlags
 } = require("discord.js");
 
-const { ServerConfig } = require("../utils/components");
-const welcomeMsg = require("../models/welcomeMsg");
-const LoLNotification = require("../models/LoLNotification");
+const ServerConfig = require("../utils/serverconfig");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -32,7 +30,7 @@ module.exports = {
                         await i.showModal(welcomeMsgModal);
                         break;
                     case "lolNotification":
-                        const lolNotificationModal = ServerConfig.createLoLConfigModal(i.guild.id)
+                        const lolNotificationModal = ServerConfig.createLoLConfigModal(i.guild.id);
                         await i.showModal(lolNotificationModal)
                         break;
                 }
