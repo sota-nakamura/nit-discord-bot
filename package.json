@@ -15,10 +15,11 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/voice": "^0.19.2",
+    "@fightmegg/riot-api": "^0.0.21",
     "@napi-rs/canvas": "^1.0.0",
     "better-sqlite3": "^12.9.0",
     "dayjs": "^1.11.21",
-    "discord.js": "^14.25.1",
+    "discord.js": "^14.26.4",
     "dotenv": "^17.3.1",
     "msedge-tts": "^2.0.5"
   },

@@ -4,12 +4,13 @@ const {
     AttachmentBuilder,
     SlashCommandBuilder,
     MessageFlags,
-    Client
 } = require("discord.js");
 const Canvas = require('@napi-rs/canvas');
 const path = require('path');
-const { execPath } = require("process");
+const { execPath, title } = require("process");
 const db = require("../models/Database");
+const LoLAccount = require("../models/LoLAccount");
+const { getActiveGame, getChampionData, getLatestMatchStats, rAPI } = require("../utils/riotApi");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -23,7 +24,13 @@ module.exports = {
         .addSubcommand(subcommand =>
             subcommand
                 .setName("activity")
-                .setDescription("test the activity message")
+                .setDescription("ユーザーのアクティビティを取得")
+                .addUserOption(options =>
+                    options
+                        .setName("user")
+                        .setDescription("アクティビティを取得するユーザーを選択")
+                        .setRequired(true)
+                )
         )
         .addSubcommand(subcommand =>
             subcommand
@@ -99,53 +106,45 @@ module.exports = {
             });
             */
         } else if (subcommand === "activity") {
-            /*
-            interaction.reply({
-                content: "なんもないっすね",
-                flags: [MessageFlags.Ephemeral]
-            });
-            */
             await interaction.deferReply();
-            const guild = interaction.guild;
-            const members = await guild.members.fetch()
-            const lolRoleId = "1469718241600475259"
-            const lolVoiceChannelIds = new Set();
-            const lolPlayerList = [];
-            members.forEach(member => {
-                if (!member.presence || !member.roles.cache.has(lolRoleId)) return;
-                const playingLoL = member.presence.activities.some(activity => activity.applicationId === "401518684763586560");
-                if (playingLoL && member.voice?.channelId) {
-                    lolVoiceChannelIds.add(member.voice.channelId);
-                }
-            });
+            const target = interaction.options.getUser("user");
 
-            let lolPlayerCount = 0;
-            members.forEach(member => {
-                const isPlayingLoL = member.presence?.activities.some(activity => activity.applicationId === ("401518684763586560" || "1402418696126992445"));
-                const isInLoLVoice = member.voice?.channelId && lolVoiceChannelIds.has(member.voice.channelId);
-                const isOffline = !member.presence;
+            // 1. Check if they have a linked Riot Account first
+            const account = LoLAccount.get(target.id);
+            if (account) {
+                try {
+                    let game = await getActiveGame(account.puuid);
+                    let title = `**${account.riot_id_name}#${account.riot_id_tag}**は現在試合中です!`
+                    let status = "試合中"
+                    if (!game) {
+                        game = await getLatestMatchStats(account.puuid);
+                        title = `**${account.riot_id_name}#${account.riot_id_tag}**の最新の試合結果`
+                        status = game.win ? "勝利" : "敗北"
+                    }
+                    const champData = await getChampionData(game.championId);
+                    const embed = new EmbedBuilder()
+                        .setAuthor({ name: target.username, iconURL: target.displayAvatarURL() })
+                        .setTitle(title)
+                        .setColor(game.win ? "Green" : "Orange")
+                        .addFields(
+                            { name: "ステータス", value: status, inline: true },
+                            { name: "チャンピオン", value: champData.name, inline: true },
+                            { name: "ゲームモード", value: game.gameMode || "不明", inline: true },
+                            { name: "KDA", value: game.kda }
+                        )
+                        .setTimestamp()
+                        .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/${game.version}/img/champion/${champData.image.full}`);
 
-                if (isPlayingLoL || (isInLoLVoice && isOffline && member.roles.cache.has(lolRoleId))) {
-                    lolPlayerCount++;
-                    lolPlayerList.push(`<@${member.id}>`);
+                    if (game.startTime > 0) {
+                        const startUnix = Math.floor(game.startTime / 1000);
+                        embed.addFields({ name: "経過時間", value: `<t:${startUnix}:R>`, inline: true });
+                    }
+
+                    return await interaction.editReply({ embeds: [embed] });
+                } catch (error) {
+                    console.error("Error fetching live game from Riot API in test command:", error);
                 }
-            });
-            const lolPlayerEmbed = new EmbedBuilder()
-                .setTitle(lolPlayerCount > 5 ? "けっこうLoLやってますね" : "あんまLoLやってないっすね")
-                .setColor(0x0099ff)
-                .setDescription(`現在 ${lolPlayerCount}人がlolやってます`)
-                .addFields({
-                    name: "プレイヤー一覧",
-                    value: lolPlayerList.length > 0 ? "\n - " + lolPlayerList.join("\n - ") : "現在プレイ中の人はいません",
-                })
-                .setFooter({
-                    text: `${interaction.guild.name} | 現在の人数: ${interaction.guild.memberCount}人`,
-                    iconURL: interaction.guild.iconURL(),
-                })
-                .setTimestamp();
-            await interaction.editReply({
-                embeds: [lolPlayerEmbed],
-            });
+            }
         } else if (subcommand === "notfunny") {
             await db.prepare("INSERT INTO funny_vote (user_id, not_funny_count) VALUES (?, 10)").run(interaction.user.id);
             interaction.reply({
