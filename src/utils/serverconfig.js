@@ -5,6 +5,7 @@ const {
     ActionRowBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
+    ModalBuilder,
     CheckboxBuilder,
     TextInputBuilder,
     TextInputStyle,
