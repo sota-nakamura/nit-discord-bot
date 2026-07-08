@@ -4,6 +4,12 @@ module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
         try {
+            if (process.env.NODE_ENV !== "production" && interaction.user.username !== "satoimo_satosi") {
+                return interaction.reply({
+                    content: "こちらはテスト用のBotのコマンドです。一般ユーザーの操作は制限されています。",
+                    flags: MessageFlags.Ephemeral
+                })
+            }
             if (interaction.isChatInputCommand() || interaction.isUserContextMenuCommand() || interaction.isContextMenuCommand()) {
                 const command = interaction.client.commands.get(interaction.commandName);
                 if (!command) {

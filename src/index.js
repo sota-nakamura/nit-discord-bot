@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits, Partials } = require("discord.js");
+const { Client, IntentsBitField, Partials } = require("discord.js");
 const http = require("http");
 const querystring = require("node:querystring");
 const { loadCommands } = require("./handlers/commandHandler");
@@ -38,17 +38,20 @@ const bots = [];
 
 // Initialize all client instances
 for (let i = 0; i < tokens.length; i++) {
+    const myIntents = new IntentsBitField();
+    myIntents.add(
+        IntentsBitField.Flags.Guilds,
+        IntentsBitField.Flags.GuildVoiceStates,
+        IntentsBitField.Flags.GuildMessages,
+        IntentsBitField.Flags.MessageContent,
+        IntentsBitField.Flags.GuildMembers,
+        IntentsBitField.Flags.GuildPresences,
+        IntentsBitField.Flags.DirectMessages,
+        IntentsBitField.Flags.GuildMessageReactions
+    );
+
     const clientInstance = new Client({
-        intents: [
-            GatewayIntentBits.Guilds,
-            GatewayIntentBits.GuildVoiceStates,
-            GatewayIntentBits.GuildMessages,
-            GatewayIntentBits.MessageContent,
-            GatewayIntentBits.GuildMembers,
-            GatewayIntentBits.GuildPresences,
-            GatewayIntentBits.DirectMessages,
-            GatewayIntentBits.GuildMessageReactions
-        ],
+        intents: myIntents,
         partials: [
             Partials.Message,
             Partials.Channel,
