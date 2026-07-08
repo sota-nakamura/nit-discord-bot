@@ -19,8 +19,7 @@ module.exports = {
         const newLolActivity = newPresence?.activities?.find(a => a.applicationId === "401518684763586560" || a.applicationId === "1402418696126992445" || a.name === "League of Legends");
 
         // Fetch notification channel
-        const settings = await LoLNotification.getSettings(guild.id);
-        const channelId = settings?.channel_id;
+        const channelId = process.env.LOL_CHANNEL_ID;
         if (!channelId) {
             return;
         }

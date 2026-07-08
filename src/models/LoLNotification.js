@@ -14,13 +14,16 @@ class LoLNotification {
         return db.prepare("SELECT * FROM lol_notification").all();
     }
     static async setSettings(guildId, channelId) {
+        if (this.getSettings(guildId)) {
+            return await db.prepare("UPDATE lol_notification_channel SET channel_id = ? WHERE guild_id = ? ").run(channelId, guildId);
+        }
         await db.prepare("INSERT INTO lol_notification_channel (guild_id, channel_id) VALUES (?, ?) ").run(guildId, channelId);
     }
     static async removeSettings(guildId) {
         await db.prepare("DELETE FROM lol_notification_channel WHERE guild_id = ? ").run(guildId);
     }
     static async getSettings(guildId) {
-        return await db.prepare("SELECT channel_id FROM lol_notification_channel WHERE guild_id = ?").get(guildId);
+        return await db.prepare("SELECT * FROM lol_notification_channel WHERE guild_id = ?").get(guildId);
     }
     static async enable(guildId, channelId) {
         if (await this.isEnabled(guildId)) {
