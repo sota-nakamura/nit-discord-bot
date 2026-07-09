@@ -73,7 +73,7 @@ async function getActiveGame(puuid) {
         const championId = participant ? participant.championId : null;
 
         return {
-            gameId: game.gameId,
+            matchId: game.gameId,
             gameMode: game.gameMode,
             gameQueueConfigId: game.gameQueueConfigId,
             championId: championId,
