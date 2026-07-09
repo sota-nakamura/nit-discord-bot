@@ -111,7 +111,7 @@ module.exports = {
             const target = interaction.options.getUser("user");
 
             // 1. Check if they have a linked Riot Account first
-            const account = LoLAccount.get(target.id);
+            const account = await LoLAccount.get(target.id);
             if (account) {
                 try {
                     let game = await getActiveGame(account.puuid);
@@ -120,7 +120,7 @@ module.exports = {
                     if (!game) {
                         game = await getLatestMatchStats(account.puuid);
                         title = `**${account.riot_id_name}#${account.riot_id_tag}**の最新の試合結果`
-                        status = game.win ? "勝利" : "敗北"
+                        status = game.win ? "勝利" : "敗北" || "不明"
                     }
                     const champData = await getChampionData(game.championId);
                     const embed = new EmbedBuilder()
@@ -148,6 +148,8 @@ module.exports = {
                 } catch (error) {
                     console.error("Error fetching live game from Riot API in test command:", error);
                 }
+            } else {
+                await interaction.editReply(`**${target.username}**のRiotアカウントは登録されていません。`)
             }
         } else if (subcommand === "notfunny") {
             await db.prepare("INSERT INTO funny_vote (user_id, not_funny_count) VALUES (?, 10)").run(interaction.user.id);
