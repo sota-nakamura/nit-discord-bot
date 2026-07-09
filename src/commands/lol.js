@@ -71,7 +71,7 @@ module.exports = {
                     )
                     .setColor(0x00ff00)
                     .setTimestamp();
-                console.log(`[INFO] ${interaction.user.username}が登録完了しました。Riot ID: ${name}#${tag} PUUID: ${puuid}`)
+                console.log(`[INFO] ${interaction.user.username}が登録完了しました。Riot ID: ${name}#${tag} PUUID: ${puuid.substring(0, 8)}...`)
                 await interaction.editReply({ embeds: [embed] });
             } catch (error) {
                 console.error("Error registering Riot ID:", error);
