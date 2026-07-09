@@ -33,7 +33,7 @@ module.exports = {
         if (newLolActivity && !activeGames.has(member.id)) {
             let gameMode;
             let startTime = Date.now();
-            let gameId = null;
+            let matchId = null;
             let champData = null;
 
             // If account is linked, fetch details from Riot API
@@ -41,7 +41,7 @@ module.exports = {
                 try {
                     const apiGame = await getActiveGame(account.puuid);
                     if (apiGame) {
-                        gameId = apiGame.gameId;
+                        matchId = apiGame.matchId;
                         version = apiGame.version
                         if (apiGame.championId) {
                             champData = await getChampionData(apiGame.championId);
@@ -53,7 +53,7 @@ module.exports = {
                             startTime = apiGame.startTime;
                         }
                         activeGames.set(member.id, {
-                            gameId,
+                            matchId,
                             puuid: account?.puuid || null,
                             champion: champData,
                             lastKda: null,
@@ -116,12 +116,14 @@ module.exports = {
 
                 const embed = new EmbedBuilder()
                     .setTitle(`${member} のLoLの試合が終了しました。`)
+                    .setURL(`https://www.deeplol.gg/summoner/jp/${account.riot_id_name}-${account.riot_id_tag}/matches/${gameInfo.matchId}`)
+                    .setDescription("タイトルをクリックしてDeepLOLの試合分析を確認できます！")
                     .setColor(winStatus ? "Green" : "Orange" || "Blue")
                     .addFields(
-                        { name: "ゲームモード", value: actualGameMode || "不明", inline: true },
                         { name: "結果", value: winStatus ? "勝利" : "敗北" || "不明", inline: true },
-                        { name: "使用チャンピオン", value: championName || "不明", inline: true },
-                        { name: "最終 K/D/A", value: finalKda || "不明", inline: true }
+                        { name: "ゲームモード", value: actualGameMode || "不明", inline: true },
+                        { name: "チャンピオン", value: championName || "不明", inline: true },
+                        { name: "KDA", value: finalKda || "不明", inline: true }
                     )
                     .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/16.13.1/img/champion/${champName}.png`);
                 if (killParticipation !== null) {

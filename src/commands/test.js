@@ -125,6 +125,8 @@ module.exports = {
                     const embed = new EmbedBuilder()
                         .setAuthor({ name: target.username, iconURL: target.displayAvatarURL() })
                         .setTitle(title)
+                        .setURL(`https://www.deeplol.gg/summoner/jp/${account.riot_id_name}-${account.riot_id_tag}/matches/${game.matchId}`)
+                        .setDescription("タイトルをクリックしてDeepLOLの試合分析を確認できます！")
                         .setColor(game.win ? "Green" : "Orange")
                         .addFields(
                             { name: "ステータス", value: status, inline: true },
