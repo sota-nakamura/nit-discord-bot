@@ -4,6 +4,7 @@ const {
     MessageFlags,
 } = require("discord.js");
 const LoLAccount = require("../models/LoLAccount");
+const { getPuuid } = require("../utils/riotApi");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -97,21 +98,32 @@ module.exports = {
                 flags: MessageFlags.Ephemeral
             });
         } else if (subcommand === "addlolacc") {
+            interaction.deferReply({
+                flags: MessageFlags.Ephemeral
+            })
             const name = interaction.options.getString("name");
             const tag = interaction.options.getString("tag");
             const user = interaction.options.getUser("user");
             const account = await LoLAccount.get(user.id);
+            const puuid = await getPuuid(name, tag);
             if (account) {
                 return interaction.reply({
                     content: "そのユーザーはすでにlolアカウントが登録されています。",
                     flags: MessageFlags.Ephemeral
                 });
             }
-            await LoLAccount.register(user.id, name, tag);
-            await interaction.reply({
-                content: `**${user.username}** のlolアカウントに **${name}#${tag}** を追加しました`,
-                flags: MessageFlags.Ephemeral
-            });
+            await LoLAccount.register(user.id, name, tag, puuid);
+            const embed = new EmbedBuilder()
+                .setTitle("Riot ID 連携完了")
+                .setDescription(`**${user.username}** に Riot ID を連携しました。`)
+                .addFields(
+                    { name: "Riot ID", value: `${name}#${tag}`, inline: true },
+                    { name: "PUUID", value: `\`${puuid.substring(0, 8)}...\``, inline: true }
+                )
+                .setColor(0x00ff00)
+                .setTimestamp();
+            console.log(`[INFO] ${user.username}が登録完了しました。Riot ID: ${name}#${tag} PUUID: ${puuid}`)
+            await interaction.editReply({ embeds: [embed] });
         } else if (subcommand === "removelolacc") {
             const user = interaction.options.getUser("user");
             const account = await LoLAccount.get(user.id);
@@ -126,6 +138,7 @@ module.exports = {
                 content: `**${user.username}** のlolアカウントを削除しました。`,
                 flags: MessageFlags.Ephemeral
             });
+            console.log(`[INFO] ${user.username}がRiot IDの登録を解除しました。`)
         }
     }
 }

@@ -1,26 +1,26 @@
 const db = require("./Database");
 
 class LoLAccount {
-    static register(discordUserId, riotIdName, riotIdTag, puuid) {
+    static async register(discordUserId, riotIdName, riotIdTag, puuid) {
         const stmt = db.prepare(
             "INSERT OR REPLACE INTO lol_accounts (discord_user_id, riot_id_name, riot_id_tag, puuid) VALUES (?, ?, ?, ?)"
         );
-        stmt.run(discordUserId, riotIdName, riotIdTag, puuid);
+        await stmt.run(discordUserId, riotIdName, riotIdTag, puuid);
     }
 
-    static unregister(discordUserId) {
+    static async unregister(discordUserId) {
         const stmt = db.prepare("DELETE FROM lol_accounts WHERE discord_user_id = ?");
-        stmt.run(discordUserId);
+        await stmt.run(discordUserId);
     }
 
-    static get(discordUserId) {
+    static async get(discordUserId) {
         const stmt = db.prepare("SELECT * FROM lol_accounts WHERE discord_user_id = ?");
-        return stmt.get(discordUserId);
+        return await stmt.get(discordUserId);
     }
 
-    static getAll() {
+    static async getAll() {
         const stmt = db.prepare("SELECT * FROM lol_accounts");
-        return stmt.all();
+        return await stmt.all();
     }
 }
 

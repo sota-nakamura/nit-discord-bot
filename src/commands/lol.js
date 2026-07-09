@@ -60,7 +60,7 @@ module.exports = {
                     });
                 }
 
-                LoLAccount.register(interaction.user.id, name, tag, puuid);
+                await LoLAccount.register(interaction.user.id, name, tag, puuid);
 
                 const embed = new EmbedBuilder()
                     .setTitle("Riot ID 連携完了")
@@ -71,7 +71,7 @@ module.exports = {
                     )
                     .setColor(0x00ff00)
                     .setTimestamp();
-                console.log(`[INFO] ${interaction.user.displayName}が登録完了しました。Riot ID: ${name}#${tag} PUUID: ${puuid}`)
+                console.log(`[INFO] ${interaction.user.username}が登録完了しました。Riot ID: ${name}#${tag} PUUID: ${puuid}`)
                 await interaction.editReply({ embeds: [embed] });
             } catch (error) {
                 console.error("Error registering Riot ID:", error);
@@ -82,18 +82,19 @@ module.exports = {
         }
 
         else if (subcommand === "unregister") {
-            LoLAccount.unregister(interaction.user.id);
+            await LoLAccount.unregister(interaction.user.id);
             await interaction.reply({
                 content: "Riot ID の連携を解除しました。",
                 flags: MessageFlags.Ephemeral
             });
+            console.log(`[INFO] ${interaction.user.username}がRiot IDの登録を解除しました。`)
         }
 
         else if (subcommand === "status") {
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             const targetUser = interaction.options.getUser("user") || interaction.user;
 
-            const account = LoLAccount.get(targetUser.id);
+            const account = await LoLAccount.get(targetUser.id);
             if (!account) {
                 return await interaction.editReply({
                     content: `${targetUser.username} は Riot ID を連携していません。先に \`/lol register\` で登録してください。`
