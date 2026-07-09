@@ -1,6 +1,6 @@
 const { Events, EmbedBuilder } = require("discord.js");
 const LoLAccount = require("../models/LoLAccount");
-const LoLNotification = require("../models/LoLNotification");
+const dayjs = require("dayjs");
 const { getActiveGame, getLatestMatchStats, getChampionData } = require("../utils/riotApi");
 const activeGames = new Map();
 
@@ -123,7 +123,8 @@ module.exports = {
                         { name: "結果", value: winStatus ? "勝利" : "敗北" || "不明", inline: true },
                         { name: "ゲームモード", value: actualGameMode || "不明", inline: true },
                         { name: "チャンピオン", value: championName || "不明", inline: true },
-                        { name: "KDA", value: finalKda || "不明", inline: true }
+                        { name: "KDA", value: finalKda || "不明", inline: true },
+                        { name: "試合時間", value: `${dayjs.unix(gameInfo.gameTime).format("mm:ss")}`, inline: true }
                     )
                     .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/16.13.1/img/champion/${champName}.png`);
                 if (killParticipation !== null) {

@@ -8,6 +8,7 @@ const {
 const Canvas = require('@napi-rs/canvas');
 const path = require('path');
 const { execPath, title } = require("process");
+const dayjs = require("dayjs");
 const db = require("../models/Database");
 const LoLAccount = require("../models/LoLAccount");
 const { getActiveGame, getChampionData, getLatestMatchStats, rAPI } = require("../utils/riotApi");
@@ -132,7 +133,8 @@ module.exports = {
                             { name: "ステータス", value: status, inline: true },
                             { name: "チャンピオン", value: champData.name, inline: true },
                             { name: "ゲームモード", value: game.gameMode || "不明", inline: true },
-                            { name: "KDA", value: game.kda }
+                            { name: "KDA", value: game.kda, inline: true },
+                            { name: "試合時間", value: `${Math.floor(game.gameDuration / 60)}:${game.gameDuration % 60}`, inline: true }
                         )
                         .setTimestamp()
                         .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/${game.version}/img/champion/${champData.image.full}`);

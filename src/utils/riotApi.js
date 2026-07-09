@@ -153,6 +153,7 @@ async function getLatestMatchStats(puuid) {
             deaths: participant.deaths,
             assists: participant.assists,
             win: participant.win,
+            gameDuration: match.info.gameDuration,
             kda: `${participant.kills}/${participant.deaths}/${participant.assists}`,
             killParticipation: Math.min(100.0, parseFloat(killParticipation.toFixed(1))),
             version: await getVersion()
