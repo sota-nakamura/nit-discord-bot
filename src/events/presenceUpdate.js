@@ -94,7 +94,7 @@ module.exports = {
             activeGames.delete(member.id);
             setTimeout(async () => {
                 let finalKda = gameInfo.lastKda;
-                let championName = gameInfo.champion.name;
+                let champData = gameInfo.champion;
                 let winStatus = null; // win, lose, or null (unknown)
                 let actualGameMode = gameInfo.details;
                 let killParticipation = null;
@@ -104,7 +104,6 @@ module.exports = {
                         const matchStats = await getLatestMatchStats(gameInfo.puuid);
                         if (matchStats) {
                             finalKda = matchStats.kda;
-                            championName = matchStats.championName;
                             winStatus = matchStats.win;
                             actualGameMode = matchStats.gameMode;
                             killParticipation = matchStats.killParticipation;
@@ -122,11 +121,11 @@ module.exports = {
                     .addFields(
                         { name: "結果", value: winStatus ? "勝利" : "敗北" || "不明", inline: true },
                         { name: "ゲームモード", value: actualGameMode || "不明", inline: true },
-                        { name: "チャンピオン", value: championName || "不明", inline: true },
+                        { name: "チャンピオン", value: champData.name || "不明", inline: true },
                         { name: "KDA", value: finalKda || "不明", inline: true },
                         { name: "試合時間", value: `${dayjs.unix(gameInfo.gameTime).format("mm:ss")}`, inline: true }
                     )
-                    .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/16.13.1/img/champion/${champName}.png`);
+                    .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/16.13.1/img/champion/${champData.image.full}`);
                 if (killParticipation !== null) {
                     embed.addFields({ name: "キル関与率", value: `${killParticipation}%`, inline: true });
                 }
