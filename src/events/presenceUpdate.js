@@ -34,6 +34,7 @@ module.exports = {
             let gameMode;
             let startTime = Date.now();
             let gameId = null;
+            let champData = null;
 
             // If account is linked, fetch details from Riot API
             if (account) {
@@ -41,6 +42,7 @@ module.exports = {
                     const apiGame = await getActiveGame(account.puuid);
                     if (apiGame) {
                         gameId = apiGame.gameId;
+                        version = apiGame.version
                         if (apiGame.championId) {
                             champData = await getChampionData(apiGame.championId);
                         }
@@ -50,37 +52,42 @@ module.exports = {
                         if (apiGame.startTime > 0) {
                             startTime = apiGame.startTime;
                         }
+                        activeGames.set(member.id, {
+                            gameId,
+                            puuid: account?.puuid || null,
+                            champion: champData,
+                            lastKda: null,
+                            details: gameMode,
+                            startTime
+                        });
+                    } else {
+                        activeGames.delete(member.id);
+                        return;
                     }
                 } catch (error) {
                     console.error("Error fetching live game from Riot API in presenceUpdate:", error);
+                    activeGames.delete(member.id);
+                    return;
                 }
             }
+            if (activeGames.has(member.id)) {
+                const embed = new EmbedBuilder()
+                    .setTitle("🎮 League of Legends 試合開始")
+                    .setDescription(`${member} がLoLの試合を開始しました！`)
+                    .setColor(0x0099ff)
+                    .addFields(
+                        { name: "使用チャンピオン", value: champData.name, inline: true },
+                        { name: "ゲームモード", value: gameMode, inline: true }
+                    )
+                    .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champData.image.full}`)
+                    .setTimestamp();
 
-            activeGames.set(member.id, {
-                gameId,
-                puuid: account?.puuid || null,
-                champion: champData,
-                lastKda: null,
-                details: gameMode,
-                startTime
-            });
+                if (startTime > 0) {
+                    embed.addFields({ name: "開始時間", value: `<t:${Math.floor(startTime / 1000)}:R>`, inline: true });
+                }
 
-            const embed = new EmbedBuilder()
-                .setTitle("🎮 League of Legends 試合開始")
-                .setDescription(`${member} がLoLの試合を開始しました！`)
-                .setColor(0x0099ff)
-                .addFields(
-                    { name: "使用チャンピオン", value: champData.name, inline: true },
-                    { name: "ゲームモード", value: gameMode, inline: true }
-                )
-                .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/${apiGame.version}/img/champion/${champData.image.full}`)
-                .setTimestamp();
-
-            if (startTime > 0) {
-                embed.addFields({ name: "開始時間", value: `<t:${Math.floor(startTime / 1000)}:R>`, inline: true });
+                await channel.send({ embeds: [embed] }).catch(console.error);
             }
-
-            await channel.send({ embeds: [embed] }).catch(console.error);
         }
         else if (!newLolActivity && activeGames.has(member.id)) {
             const gameInfo = activeGames.get(member.id);
