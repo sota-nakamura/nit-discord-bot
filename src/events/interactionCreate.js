@@ -29,7 +29,7 @@ module.exports = {
                     }
                     try {
                         if (interaction.replied || interaction.deferred) {
-                            await interaction.followUp({ content: errorMsg, flags: MessageFlags.Ephemeral });
+                            await interaction.followUp({ content: errorMsg });
                         } else {
                             await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
                         }
