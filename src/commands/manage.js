@@ -19,6 +19,40 @@ module.exports = {
                         .setDescription("対象のユーザー(入力しないと全員表示)")
                         .setRequired(false)
                 )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("addlolacc")
+                .setDescription("lolアカウントの追加")
+                .addStringOption(option =>
+                    option
+                        .setName("name")
+                        .setDescription("Riot アカウントの名前部分")
+                        .setRequired(true)
+                )
+                .addStringOption(option =>
+                    option
+                        .setName("tag")
+                        .setDescription("Riot アカウントのタグ部分")
+                        .setRequired(true)
+                )
+                .addUserOption(option =>
+                    option
+                        .setName("user")
+                        .setDescription("対象のDiscordユーザー")
+                        .setRequired(true)
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("removelolacc")
+                .setDescription("lolアカウントの削除")
+                .addUserOption(option =>
+                    option
+                        .setName("user")
+                        .setDescription("対象のDiscordユーザー")
+                        .setRequired(true)
+                )
         ),
     async execute(interaction) {
         if (interaction.user.username !== "satoimo_satosi") {
@@ -60,6 +94,36 @@ module.exports = {
             }
             await interaction.reply({
                 embeds: [embed],
+                flags: MessageFlags.Ephemeral
+            });
+        } else if (subcommand === "addlolacc") {
+            const name = interaction.options.getString("name");
+            const tag = interaction.options.getString("tag");
+            const user = interaction.options.getUser("user");
+            const account = await LoLAccount.get(user.id);
+            if (account) {
+                return interaction.reply({
+                    content: "そのユーザーはすでにlolアカウントが登録されています。",
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+            await LoLAccount.add(user.id, name, tag);
+            await interaction.reply({
+                content: `**${user.username}** のlolアカウントに **${name}#${tag}** を追加しました`,
+                flags: MessageFlags.Ephemeral
+            });
+        } else if (subcommand === "removelolacc") {
+            const user = interaction.options.getUser("user");
+            const account = await LoLAccount.get(user.id);
+            if (!account) {
+                return interaction.reply({
+                    content: "そのユーザーにはlolアカウントが登録されていません。",
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+            await LoLAccount.remove(user.id);
+            await interaction.reply({
+                content: `**${user.username}** のlolアカウントを削除しました。`,
                 flags: MessageFlags.Ephemeral
             });
         }
