@@ -107,7 +107,7 @@ module.exports = {
                     flags: MessageFlags.Ephemeral
                 });
             }
-            await LoLAccount.add(user.id, name, tag);
+            await LoLAccount.register(user.id, name, tag);
             await interaction.reply({
                 content: `**${user.username}** のlolアカウントに **${name}#${tag}** を追加しました`,
                 flags: MessageFlags.Ephemeral
@@ -121,7 +121,7 @@ module.exports = {
                     flags: MessageFlags.Ephemeral
                 });
             }
-            await LoLAccount.remove(user.id);
+            await LoLAccount.unregister(user.id);
             await interaction.reply({
                 content: `**${user.username}** のlolアカウントを削除しました。`,
                 flags: MessageFlags.Ephemeral
