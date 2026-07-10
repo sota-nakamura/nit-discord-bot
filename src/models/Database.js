@@ -1,7 +1,7 @@
 const Database = require("better-sqlite3");
 const path = require("node:path");
 
-const db = new Database("./db/database.db");
+const db = new Database("db/database.db");
 
 // Initialize tables
 db.prepare("CREATE TABLE IF NOT EXISTS role_prefix (role_id TEXT, prefix TEXT)").run();
