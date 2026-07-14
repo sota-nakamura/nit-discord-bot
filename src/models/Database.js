@@ -24,5 +24,6 @@ db.prepare("CREATE TABLE IF NOT EXISTS lol_notification_channel (guild_id TEXT P
 db.prepare("CREATE TABLE IF NOT EXISTS funny_vote (user_id TEXT PRIMARY KEY, funny_count INTEGER DEFAULT 0, not_funny_count INTEGER DEFAULT 0)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS event_config (guild_id TEXT PRIMARY KEY, event_notification_channel TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS lol_accounts (discord_user_id TEXT PRIMARY KEY, riot_id_name TEXT, riot_id_tag TEXT, puuid TEXT)").run();
+db.prepare("CREATE TABLE IF NOT EXISTS reminder (reminder_id UUID PRIMARY KEY, user_id TEXT, time INTEGER, message TEXT)").run();
 
 module.exports = db;
