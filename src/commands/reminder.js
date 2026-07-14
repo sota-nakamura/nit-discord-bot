@@ -3,7 +3,8 @@ const Reminder = require("../models/Reminder");
 const { v4: uuidv4 } = require("uuid");
 const { createScheduledTask } = require("../utils/scheduler");
 const dayjs = require("dayjs")
-const chrono = require("chrono-node");
+const parseTime = require("../utils/parseTime");
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("reminder")
@@ -40,7 +41,7 @@ module.exports = {
         if (subcommand === "add") {
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             const timeString = interaction.options.getString("time");
-            const parsedDate = await chrono.ja.parseDate(timeString);
+            const parsedDate = parseTime(timeString);
             if (!parsedDate) {
                 await interaction.editReply({
                     content: "無効な時刻が入力されました。",
@@ -70,7 +71,7 @@ module.exports = {
                     }
                 });
                 await interaction.editReply({
-                    content: `リマインダーを設定しました。\n時刻: ${time}\n内容: ${message}`,
+                    content: `リマインダーを設定しました。\n時刻: ${dayjs(time).format("YYYY/MM/DD HH:mm")}\n内容: ${message}`,
                     flags: MessageFlags.Ephemeral
                 });
             } catch (error) {
