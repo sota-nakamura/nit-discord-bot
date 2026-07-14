@@ -72,7 +72,7 @@ module.exports = {
             }
             if (activeGames.has(member.id)) {
                 const embed = new EmbedBuilder()
-                    .setTitle("🎮 League of Legends 試合開始")
+                    .setTitle("League of Legends 試合開始")
                     .setDescription(`${member} がLoLの試合を開始しました！`)
                     .setColor(0x0099ff)
                     .addFields(
@@ -114,7 +114,7 @@ module.exports = {
                 }
 
                 const embed = new EmbedBuilder()
-                    .setTitle(`${member} のLoLの試合が終了しました。`)
+                    .setTitle(`${member.username} のLoLの試合が終了しました。`)
                     .setURL(`https://www.deeplol.gg/summoner/jp/${account.riot_id_name}-${account.riot_id_tag}/matches/${gameInfo.matchId}`)
                     .setDescription("タイトルをクリックしてDeepLOLの試合分析を確認できます！")
                     .setColor(winStatus ? "Green" : "Orange" || "Blue")
@@ -123,7 +123,7 @@ module.exports = {
                         { name: "ゲームモード", value: actualGameMode || "不明", inline: true },
                         { name: "チャンピオン", value: champData.name || "不明", inline: true },
                         { name: "KDA", value: finalKda || "不明", inline: true },
-                        { name: "試合時間", value: `${dayjs.unix(gameInfo.gameTime).format("mm:ss")}`, inline: true }
+                        { name: "試合時間", value: `${dayjs(gameInfo.gameTime).format("mm:ss")}` || "不明", inline: true }
                     )
                     .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/16.13.1/img/champion/${champData.image.full}`);
                 if (killParticipation !== null) {
