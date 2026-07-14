@@ -18,10 +18,12 @@
     "@fightmegg/riot-api": "^0.0.21",
     "@napi-rs/canvas": "^1.0.0",
     "better-sqlite3": "^12.9.0",
+    "chrono-node": "^2.10.0",
     "dayjs": "^1.11.21",
     "discord.js": "^14.26.4",
     "dotenv": "^17.3.1",
-    "msedge-tts": "^2.0.5"
+    "msedge-tts": "^2.0.5",
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
