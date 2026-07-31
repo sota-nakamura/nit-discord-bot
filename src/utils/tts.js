@@ -5,7 +5,7 @@ const audioPlayers = new Map();
 async function tts(text, voice = "ja-JP-NanamiNeural") {
     const ttsClient = new MsEdgeTTS();
     await ttsClient.setMetadata(voice, OUTPUT_FORMAT.WEBM_24KHZ_16BIT_MONO_OPUS);
-    const { audioStream } = ttsClient.toStream(text, { volume: "-50%", rate: "medium" });
+    const { audioStream } = ttsClient.toStream(text, { volume: "-60%", rate: "medium" });
     return audioStream;
 }
 

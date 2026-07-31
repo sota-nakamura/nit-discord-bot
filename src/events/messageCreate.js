@@ -40,7 +40,15 @@ module.exports = {
         if (tempVC) {
             const prefs = TemporaryVC.getPrefs(tempVC.creator_id)
             if (prefs?.read_message === 1) {
-                const content = message.content.length > 30 ? message.content.slice(0, 30) + "以下略" : message.content;
+                let content = message.content.length > 50 ? message.content.slice(0, 50) + "以下略" : message.content;
+                content = content.replace(/https?:\/\/\S+/g, "URL省略");
+                content = content.replace(/<@!?(\d+)>/g, (match, userId) => {
+                    const member = message.mentions.members?.get(userId);
+                    if (member) return member.displayName;
+                    const user = message.mentions.users?.get(userId);
+                    if (user) return user.username;
+                    return "";
+                });
                 const bot = getBotForChannel(message.guild.id, message.channelId, message.client.botPool);
                 if (bot) {
                     const connection = getVoiceConnection(message.guild.id, bot.client.user.id);
