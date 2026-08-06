@@ -27,16 +27,14 @@ module.exports = {
             name: targetMember.nickname ? targetMember.displayName : targetUser.displayName,
             avatar: targetUser.displayAvatarURL()
         })
-        webhook.send({
+        await webhook.send({
             content: content
-        })
-            .then(async (message) => {
-                await Impersonated.insert(message.id, interaction.user.id);
-                await webhook.delete();
-                await interaction.editReply({
-                    content: "メッセージを送信しました。",
-                    flags: MessageFlags.Ephemeral
-                });
-            });
+        });
+        await Impersonated.insert(message.id, interaction.user.id);
+        await webhook.delete();
+        await interaction.editReply({
+            content: "メッセージを送信しました。",
+            flags: MessageFlags.Ephemeral
+        });
     }
 }

@@ -15,6 +15,11 @@ module.exports = {
             });
         }
         const user = interaction.client.users.cache.get(fetchedData.user_id);
+        if (!user) {
+            return await interaction.editReply({
+                content: "ユーザーが見つかりませんでした。"
+            });
+        }
         await interaction.editReply({
             content: `このメッセージは${user.username}によって送信されました。`
         })
