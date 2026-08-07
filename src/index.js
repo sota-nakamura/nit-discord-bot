@@ -30,7 +30,7 @@ for (let i = 1; i <= 5; i++) {
 const guildId = process.env.GUILD_ID;
 
 if (tokens.length === 0) {
-    console.log("TOKEN_1〜3のいずれかを設定してください。");
+    console.log("TOKENを1つ以上設定してください。");
     process.exit(0);
 }
 
@@ -99,17 +99,17 @@ http.createServer((req, res) => {
         res.end("Discord Bot is Operating!");
     }
 }).listen(process.env.PORT || 3000, async () => {
-    console.log("Server is running on port " + (process.env.PORT || 3000));
+    console.log("[INFO] Server is running on port " + (process.env.PORT || 3000));
 
     // Auto register commands for the main bot
     try {
         const commands = Array.from(mainBot.client.commands.values()).map(c => c.data.toJSON());
         const rest = new REST().setToken(mainBot.token);
-        console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        console.log(`[INFO] Started refreshing ${commands.length} application (/) commands.`);
         await rest.put(Routes.applicationGuildCommands(mainBot.clientId, guildId), { body: commands });
-        console.log(`Successfully reloaded application (/) commands.`);
+        console.log(`[INFO] Successfully reloaded application (/) commands.`);
     } catch (error) {
-        console.error("Failed to reload commands:", error);
+        console.error("[ERROR] Failed to reload commands:", error);
     }
 });
 
@@ -117,9 +117,9 @@ http.createServer((req, res) => {
 for (const bot of bots) {
     bot.client.login(bot.token)
         .then(() => {
-            console.log(`Bot ${bot.index} (${bot.client.user.tag}) logged in successfully.`);
+            console.log(`[INFO] Bot ${bot.index} (${bot.client.user.tag}) logged in successfully.`);
         })
         .catch(err => {
-            console.error(`Failed to login Bot ${bot.index}:`, err);
+            console.error(`[ERROR] Failed to login Bot ${bot.index}:`, err);
         });
 }
