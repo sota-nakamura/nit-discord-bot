@@ -1,5 +1,6 @@
-const { Events, EmbedBuilder } = require("discord.js");
+const { Events, EmbedBuilder, Collection } = require("discord.js");
 const Netatweet = require("../models/Netatweet");
+const Impersonated = require("../models/Impersonated");
 
 module.exports = {
     name: Events.MessageReactionAdd,
@@ -19,16 +20,16 @@ module.exports = {
         if (!message.guild) return;
 
         // Fetch settings
-        const config = Netatweet.get(message.guild.id);
-        if (!config) return;
+        const netatweetconfig = Netatweet.get(message.guild.id);
 
-        if (message.channel.id === config.netatweet_channel_id) {
-            if (reaction.emoji.name === "⭐" && reaction.count >= config.reaction_count) {
+        // neta tweet reaction
+        if (netatweetconfig && message.channel.id === netatweetconfig.netatweet_channel_id) {
+            if (reaction.emoji.name === "⭐" && reaction.count >= netatweetconfig.reaction_count) {
                 if (!Netatweet.isPosted(message.id)) {
                     // Save to DB first to avoid race conditions
                     Netatweet.addPosted(message.author.id, message.id, reaction.count);
 
-                    const displayChannel = await message.guild.channels.fetch(config.display_channel_id).catch(() => null);
+                    const displayChannel = await message.guild.channels.fetch(netatweetconfig.display_channel_id).catch(() => null);
                     if (displayChannel) {
                         const embed = new EmbedBuilder()
                             .setColor(0x1da1f2) // Twitter bird blue
@@ -57,7 +58,7 @@ module.exports = {
                     }
                 } else {
                     //update star count 
-                    const displayChannel = await message.guild.channels.fetch(config.display_channel_id).catch(() => null);
+                    const displayChannel = await message.guild.channels.fetch(netatweetconfig.display_channel_id).catch(() => null);
                     if (displayChannel) {
                         const displayMessage = await displayChannel.messages.fetch(message.id).catch(() => null);
                         if (displayMessage) {
@@ -72,5 +73,21 @@ module.exports = {
                 }
             }
         }
+        // check impersonated message
+        if (reaction.emoji.name === "👀" && reaction.users.cache.has(message.client.user.id)) {
+            const targetUser = reaction.users.cache.last();
+            await reaction.users.remove(targetUser);
+            const impersonatedData = await Impersonated.get(message.id);
+            if (!impersonatedData) return;
+            const user = message.client.users.cache.get(impersonatedData.user_id);
+            if (!user) {
+                await targetUser.send({
+                    content: `ユーザーが見つかりませんでした。`
+                }).catch(console.error);
+            }
+            await targetUser.send({
+                content: `${message.url}\nこのメッセージは${user.username}によって送信されました。`
+            }).catch(console.error);
+        }
     }
-};
+}

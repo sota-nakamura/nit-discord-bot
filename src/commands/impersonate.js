@@ -27,10 +27,11 @@ module.exports = {
             name: targetMember.nickname ? targetMember.displayName : targetUser.displayName,
             avatar: targetUser.displayAvatarURL()
         })
-        await webhook.send({
+        const reply = await webhook.send({
             content: content
         });
-        await Impersonated.insert(message.id, interaction.user.id);
+        await reply.react("👀");
+        await Impersonated.insert(reply.id, interaction.user.id);
         await webhook.delete();
         await interaction.editReply({
             content: "メッセージを送信しました。",
