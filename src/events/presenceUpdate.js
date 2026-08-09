@@ -6,6 +6,7 @@ const activeGames = new Map();
 
 module.exports = {
     name: Events.PresenceUpdate,
+    onlyProduction: true,
     async execute(oldPresence, newPresence) {
         if (newPresence?.user?.bot) return;
 
