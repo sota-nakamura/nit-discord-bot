@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Embed } = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -6,24 +6,49 @@ module.exports = {
         .setDescription("ヘルプメニューを表示する"),
     async execute(interaction) {
         const helpEmbed1 = new EmbedBuilder()
-            .setTitle("ヘルプ - プレフィックス関連 (1/2)")
+            .setTitle("ヘルプ - プレフィックス関連 (1/5)")
             .setDescription("ロールごとの名前の先頭につくテキストを管理するコマンド")
             .addFields(
-                { name: "/prefix add", value: "ロールに接頭辞を設定する" },
-                { name: "/prefix remove", value: "ロールの接頭辞を削除する" },
-                { name: "/prefix list", value: "ロールの接頭辞一覧を表示する" },
-                { name: "/prefix apply", value: "ロールの接頭辞を適用し直す" }
+                { name: "</prefix:1500799219273826407>", value: "ロールに接頭辞を設定する" }
             )
             .setColor(0x0099FF);
 
         const helpEmbed2 = new EmbedBuilder()
-            .setTitle("ヘルプ - ユーザー情報取得関連 (2/2)")
+            .setTitle("ヘルプ - ユーザー情報取得関連 (2/5)")
             .setDescription("ユーザーの情報を取得するコマンド(ユーザー名を右クリックして利用できます)")
             .addFields(
                 { name: "ユーザーの情報を取得する", value: "ユーザーの情報を取得する" }
             )
             .setColor(0x0099FF);
-        const pages = [helpEmbed1, helpEmbed2];
+
+        const helpEmbed3 = new EmbedBuilder()
+            .setTitle("ヘルプ - League of Legends 関連 (3/5)")
+            .setDescription("League of Legends 関連のコマンド")
+            .addFields(
+                { name: "</lol register:1524315070497296449>", value: "Riot IDを連携する" },
+                { name: "</lol unregister:1524315070497296449>", value: "Riot IDの連携を解除する" },
+                { name: "</lol status:1524315070497296449>", value: "現在の試合状況を取得する" }
+            )
+            .setColor(0x0099FF);
+
+        const helpEmbed4 = new EmbedBuilder()
+            .setTitle("ヘルプ - リマインダー関連 (4/5)")
+            .setDescription("リマインダーを管理するコマンド")
+            .addFields(
+                { name: "</reminder add:1526457071829123153>", value: "リマインダーを追加する" },
+                { name: "</reminder delete:1526457071829123153>", value: "リマインダーを削除する" },
+                { name: "</reminder list:1526457071829123153>", value: "リマインダー一覧を表示する" }
+            )
+            .setColor(0x0099FF);
+
+        const helpEmbed5 = new EmbedBuilder()
+            .setTitle("ヘルプ -なりすまし関連 (5/5)")
+            .setDescription("なりすまし関連のコマンド")
+            .addFields(
+                { name: "</impersonate:1526490201524801537>", value: "なりすましメッセージを送信する" }
+            )
+            .setColor(0x0099FF);
+        const pages = [helpEmbed1, helpEmbed2, helpEmbed3, helpEmbed4, helpEmbed5];
         let currentPage = 0;
 
         // ページに応じたボタン行を生成する関数
