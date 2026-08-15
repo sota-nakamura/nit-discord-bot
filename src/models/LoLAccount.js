@@ -3,7 +3,7 @@ const db = require("./Database");
 class LoLAccount {
     static async register(discordUserId, riotIdName, riotIdTag, puuid) {
         const stmt = db.prepare(
-            "INSERT OR REPLACE INTO lol_accounts (discord_user_id, riot_id_name, riot_id_tag, puuid) VALUES (?, ?, ?, ?)"
+            "INSERT INTO lol_accounts (discord_user_id, riot_id_name, riot_id_tag, puuid) VALUES (?, ?, ?, ?)"
         );
         await stmt.run(discordUserId, riotIdName, riotIdTag, puuid);
     }

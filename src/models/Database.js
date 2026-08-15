@@ -17,6 +17,11 @@ try {
 } catch (e) {
     // Ignore
 }
+try {
+    db.prepare("ALTER TABLE lol_accounts DROP PRIMARY KEY").run();
+} catch (e) {
+    // Ignore
+}
 db.prepare("CREATE TABLE IF NOT EXISTS netatweet_list (message_id TEXT PRIMARY KEY, user_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS lol_notification (user_id TEXT PRIMARY KEY)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS welcome_msg (guild_id TEXT PRIMARY KEY, message TEXT)").run();
