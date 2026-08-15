@@ -18,7 +18,22 @@ try {
     // Ignore
 }
 
-db.prepare("ALTER TABLE lol_accounts DROP PRIMARY KEY").run();
+try {
+    const info = db.prepare("PRAGMA table_info(lol_accounts)").all();
+    const discordUserIdPK = info.find(col => col.name === "discord_user_id" && col.pk > 0);
+    if (discordUserIdPK) {
+        // SQLite does not support dropping primary key. We must rename the table, create the new one without PK, copy data, and drop the old one.
+        db.transaction(() => {
+            db.prepare("ALTER TABLE lol_accounts RENAME TO lol_accounts_old").run();
+            db.prepare("CREATE TABLE lol_accounts (discord_user_id TEXT, riot_id_name TEXT, riot_id_tag TEXT, puuid TEXT)").run();
+            db.prepare("INSERT INTO lol_accounts SELECT discord_user_id, riot_id_name, riot_id_tag, puuid FROM lol_accounts_old").run();
+            db.prepare("DROP TABLE lol_accounts_old").run();
+        })();
+    }
+} catch (e) {
+    // Table might not exist yet, which is fine, CREATE TABLE IF NOT EXISTS will handle it
+}
+
 db.prepare("CREATE TABLE IF NOT EXISTS netatweet_list (message_id TEXT PRIMARY KEY, user_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS lol_notification (user_id TEXT PRIMARY KEY)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS welcome_msg (guild_id TEXT PRIMARY KEY, message TEXT)").run();
