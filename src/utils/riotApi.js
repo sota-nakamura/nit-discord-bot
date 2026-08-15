@@ -20,21 +20,30 @@ if (!process.env.RIOT_API_KEY) {
 const rAPI = new RiotAPI(process.env.RIOT_API_KEY, config);
 
 async function getPuuid(gameName, tagLine) {
-    const account = await rAPI.account.getByRiotId({
-        region: "asia",
-        gameName: gameName.trim(),
-        tagLine: tagLine.trim()
-    });
-    return account.puuid;
+    try {
+        const account = await rAPI.account.getByRiotId({
+            region: "asia",
+            gameName: gameName.trim(),
+            tagLine: tagLine.trim()
+        });
+        return account.puuid;
+    } catch (e) {
+        console.error("[ERROR] Failed to get PUUID:", e);
+        return null;
+    }
 }
 
 async function getSummonerId(puuid) {
-    const account = await rAPI.account.getByPUUID({
-        region: "asia",
-        puuid
-    });
-    console.log(account)
-    return account.gameName;
+    try {
+        const account = await rAPI.account.getByPUUID({
+            region: "asia",
+            puuid
+        });
+        return account.gameName;
+    } catch (e) {
+        console.error("[ERROR] Failed to get Summoner ID:", e);
+        return null;
+    }
 }
 
 
