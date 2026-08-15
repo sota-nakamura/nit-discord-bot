@@ -50,12 +50,6 @@ module.exports = {
             await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             const name = interaction.options.getString("name");
             const tag = interaction.options.getString("tag").replace("#", "");
-            const existingUser = await LoLAccount.get(interaction.user.id);
-            if (existingUser) {
-                return await interaction.editReply({
-                    content: `Riot ID **${existingUser.riot_id_name}#${existingUser.riot_id_tag}** は既に連携されています。`
-                });
-            }
 
             try {
                 // Call Riot API to fetch puuid

@@ -104,13 +104,7 @@ module.exports = {
             const name = interaction.options.getString("name");
             const tag = interaction.options.getString("tag");
             const user = interaction.options.getUser("user");
-            const account = await LoLAccount.get(user.id);
             const puuid = await getPuuid(name, tag);
-            if (account) {
-                return await interaction.editReply({
-                    content: "そのユーザーはすでにlolアカウントが登録されています。"
-                });
-            }
             await LoLAccount.register(user.id, name, tag, puuid);
             const embed = new EmbedBuilder()
                 .setTitle("Riot ID 連携完了")
