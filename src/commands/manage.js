@@ -105,6 +105,11 @@ module.exports = {
             const tag = interaction.options.getString("tag");
             const user = interaction.options.getUser("user");
             const puuid = await getPuuid(name, tag);
+            if (!puuid) {
+                return interaction.editReply({
+                    content: "Riot ID が見つかりませんでした。"
+                });
+            }
             await LoLAccount.register(user.id, name, tag, puuid);
             const embed = new EmbedBuilder()
                 .setTitle("Riot ID 連携完了")
