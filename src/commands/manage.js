@@ -2,6 +2,9 @@ const {
     SlashCommandBuilder,
     EmbedBuilder,
     MessageFlags,
+    ModalBuilder,
+    ContainerBuilder,
+    StringSelectMenuBuilder,
 } = require("discord.js");
 const LoLAccount = require("../models/LoLAccount");
 const { getPuuid } = require("../utils/riotApi");
@@ -99,7 +102,7 @@ module.exports = {
             });
         } else if (subcommand === "addlolacc") {
             await interaction.deferReply({
-                flags: MessageFlags.Ephemeral
+                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]
             })
             const name = interaction.options.getString("name");
             const tag = interaction.options.getString("tag");
@@ -133,10 +136,27 @@ module.exports = {
                     content: "そのユーザーにはlolアカウントが登録されていません。"
                 });
             }
-            await LoLAccount.unregister(user.id);
-            await interaction.editReply({
-                content: `**${user.username}** のlolアカウントを削除しました。`
-            });
+            if (account.length == 1) {
+                await LoLAccount.unregister(user.id);
+                await interaction.editReply({
+                    content: `**${user.username}** のlolアカウントを削除しました。`
+                });
+            } else {
+                const accountSelect = new ContainerBuilder()
+                    .addComponents(
+                        new ActionRowBuilder().addComponents(
+                            new StringSelectMenuBuilder()
+                                .setCustomId(`remove-lol-acc-${user.id}`)
+                                .setPlaceholder("削除するアカウントを選択してください")
+                                .addOptions(
+                                    ...account.map(acc => ({
+                                        label: `${acc.riot_id_name}#${acc.riot_id_tag}`,
+                                        value: acc.id
+                                    }))
+                                )
+                        )
+                    )
+            }
             console.log(`[INFO] ${user.username}がRiot IDの登録を解除しました。`)
         }
     }
