@@ -8,7 +8,7 @@ module.exports = {
         const row = TemporaryVC.get(channelId);
         const creatorId = row ? row.creator_id : null;
 
-        if (interaction.user.id !== creatorId) {
+        if (interaction.user.id !== creatorId && interaction.user.id !== process.env.BOT_OWNER_ID) {
             return interaction.reply({ content: "作成者のみがチャンネル設定を変更できます。", flags: MessageFlags.Ephemeral });
         }
 

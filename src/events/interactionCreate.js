@@ -5,7 +5,7 @@ module.exports = {
     async execute(interaction) {
         try {
             /*
-            if (process.env.NODE_ENV !== "production" && interaction.user.username !== "satoimo_satosi") {
+            if (process.env.NODE_ENV !== "production" && interaction.user.id !== process.env.BOT_OWNER_ID) {
                 return interaction.reply({
                     content: "こちらはテスト用のBotのコマンドです。一般ユーザーの操作は制限されています。",
                     flags: MessageFlags.Ephemeral

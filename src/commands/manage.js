@@ -59,7 +59,7 @@ module.exports = {
                 )
         ),
     async execute(interaction) {
-        if (interaction.user.username !== "satoimo_satosi") {
+        if (interaction.user.id !== process.env.BOT_OWNER_ID) {
             return interaction.reply({
                 content: "u cant use this command lil bro",
                 flags: [MessageFlags.Ephemeral]
