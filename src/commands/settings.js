@@ -30,12 +30,8 @@ module.exports = {
                         await i.showModal(welcomeMsgModal);
                         break;
                     case "lolNotification":
-                        const lolNotificationModal = ServerConfig.createLoLConfigModal(i.guild.id);
+                        const lolNotificationModal = await ServerConfig.createLoLConfigModal(i.guild.id);
                         await i.showModal(lolNotificationModal)
-                        break;
-                    case "eventCreate":
-                        const eventCreateModal = ServerConfig.createEventConfigModal(i.guild.id);
-                        await i.showModal(eventCreateModal)
                         break;
                 }
             } else if (i.customId === "cancel") {
