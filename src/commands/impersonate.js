@@ -26,7 +26,7 @@ module.exports = {
         const webhook = await channel.createWebhook({
             name: targetMember.nickname ? targetMember.displayName : targetUser.displayName,
             avatar: targetUser.displayAvatarURL()
-        })
+        });
         const reply = await webhook.send({
             content: content
         });
@@ -38,4 +38,4 @@ module.exports = {
             flags: MessageFlags.Ephemeral
         });
     }
-}
+};

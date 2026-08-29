@@ -1,4 +1,4 @@
-const { Events } = require("discord.js");
+const { Events, ButtonBuilder, ButtonStyle } = require("discord.js");
 const { getVoiceConnection } = require("@discordjs/voice");
 const FunnyVote = require("../models/funnyVote");
 const TemporaryVC = require("../models/TemporaryVC");
@@ -38,7 +38,7 @@ module.exports = {
         }
         const tempVC = TemporaryVC.get(message.channelId)
         if (tempVC) {
-            const prefs = await TemporaryVC.getPrefs(tempVC.creator_id)
+            const prefs = await TemporaryVC.getPrefs(tempVC.creator_id);
             if (prefs?.read_message === 1) {
                 let content = message.content.length > 50 ? message.content.slice(0, 50) + "以下略" : message.content;
                 content = content.replace(/https?:\/\/\S+/g, "URL省略");
@@ -52,7 +52,7 @@ module.exports = {
                 const bot = getBotForChannel(message.guild.id, message.channelId, message.client.botPool);
                 if (bot) {
                     const connection = getVoiceConnection(message.guild.id, bot.client.user.id);
-                    await playTTS(connection, message.channelId, content)
+                    await playTTS(connection, message.channelId, content);
                 }
             }
         }

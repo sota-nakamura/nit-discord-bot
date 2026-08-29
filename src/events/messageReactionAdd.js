@@ -20,12 +20,12 @@ module.exports = {
         if (!message.guild) return;
 
         // Fetch settings
-        const netatweetconfig = Netatweet.get(message.guild.id);
+        const netatweetconfig = await Netatweet.get(message.guild.id);
 
         // neta tweet reaction
         if (netatweetconfig && message.channel.id === netatweetconfig.netatweet_channel_id) {
             if (reaction.emoji.name === "⭐" && reaction.count >= netatweetconfig.reaction_count) {
-                if (!Netatweet.isPosted(message.id)) {
+                if (!await Netatweet.isPosted(message.id)) {
                     // Save to DB first to avoid race conditions
                     await Netatweet.addPosted(message.author.id, message.id, reaction.count);
 
@@ -90,4 +90,4 @@ module.exports = {
             }).catch(console.error);
         }
     }
-}
+};

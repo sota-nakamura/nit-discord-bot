@@ -18,7 +18,7 @@ module.exports = {
         if (!message.guild) return;
 
         // Fetch settings
-        const config = Netatweet.get(message.guild.id);
+        const config = await Netatweet.get(message.guild.id);
         if (!config) return;
 
         if (message.channel.id === config.netatweet_channel_id) {
@@ -39,7 +39,7 @@ module.exports = {
                         }
                     }
                 } else {
-                    if (Netatweet.isPosted(message.id)) {
+                    if (await Netatweet.isPosted(message.id)) {
                         const displayChannel = await message.guild.channels.fetch(config.display_channel_id).catch(() => null);
                         if (displayChannel) {
                             const displayMessage = await displayChannel.messages.fetch(message.id).catch(() => null);
@@ -50,7 +50,7 @@ module.exports = {
                             }
                         }
                     } else {
-                        Netatweet.addPosted(message.author.id, message.id, reaction.count);
+                        await Netatweet.addPosted(message.author.id, message.id, reaction.count);
                         const displayChannel = await message.guild.channels.fetch(config.display_channel_id).catch(() => null);
                         if (displayChannel) {
                             const embed = new EmbedBuilder()
@@ -83,4 +83,4 @@ module.exports = {
             }
         }
     }
-}
+};

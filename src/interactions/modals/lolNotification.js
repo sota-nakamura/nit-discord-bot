@@ -1,4 +1,4 @@
-const { MessageFlags } = require("discord.js")
+const { MessageFlags } = require("discord.js");
 const LoLNotification = require("../../models/LoLNotification");
 module.exports = {
     customId: "lolConfigModal",
@@ -14,4 +14,4 @@ module.exports = {
             flags: MessageFlags.Ephemeral
         });
     }
-}
+};

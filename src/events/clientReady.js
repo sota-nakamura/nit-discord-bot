@@ -7,7 +7,7 @@ const {
     ButtonStyle
 } = require("discord.js");
 const { start15MinScheduler } = require("../utils/scheduler");
-const LoLNotification = require("../models/LoLNotification")
+const LoLNotification = require("../models/LoLNotification");
 
 module.exports = {
     name: Events.ClientReady,
@@ -28,8 +28,8 @@ module.exports = {
 
                 const enabled = await LoLNotification.isEnabled(guildId);
                 if (!enabled) return;
-                const members = await guild.members.fetch()
-                const lolRoleId = "1469718241600475259"
+                const members = await guild.members.fetch();
+                const lolRoleId = "1469718241600475259";
                 const lolVoiceChannelIds = new Set();
                 const lolPlayerList = [];
                 members.forEach(member => {

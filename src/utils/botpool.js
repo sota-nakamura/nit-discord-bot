@@ -27,4 +27,4 @@ function getBotForChannel(guildId, channelId, botPool) {
 module.exports = {
     getAvailableBot,
     getBotForChannel
-}
+};

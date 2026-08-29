@@ -43,7 +43,7 @@ module.exports = {
                     const apiGame = await getActiveGame(account.puuid);
                     if (apiGame) {
                         matchId = apiGame.matchId;
-                        version = apiGame.version
+                        version = apiGame.version;
                         if (apiGame.championId) {
                             champData = await getChampionData(apiGame.championId);
                         }
@@ -95,7 +95,7 @@ module.exports = {
             activeGames.delete(member.id);
             setTimeout(async () => {
                 let finalKda = gameInfo.lastKda;
-                let champData = gameInfo.champion;
+                const champData = gameInfo.champion;
                 let winStatus = null; // win, lose, or null (unknown)
                 let actualGameMode = gameInfo.details;
                 let killParticipation = null;

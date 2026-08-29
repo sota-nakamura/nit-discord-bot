@@ -34,4 +34,4 @@ function createVCConfigContainer(channelId, userId) {
         );
 }
 
-module.exports = createVCConfigContainer
+module.exports = createVCConfigContainer;

@@ -63,7 +63,7 @@ module.exports = {
             return interaction.reply({
                 content: "u cant use this command lil bro",
                 flags: [MessageFlags.Ephemeral]
-            })
+            });
         }
         const subcommand = interaction.options.getSubcommand();
         if (subcommand === "lol") {
@@ -103,7 +103,7 @@ module.exports = {
         } else if (subcommand === "addlolacc") {
             await interaction.deferReply({
                 flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]
-            })
+            });
             const name = interaction.options.getString("name");
             const tag = interaction.options.getString("tag");
             const user = interaction.options.getUser("user");
@@ -123,7 +123,7 @@ module.exports = {
                 )
                 .setColor(0x00ff00)
                 .setTimestamp();
-            console.log(`[INFO] ${user.username}が登録完了しました。Riot ID: ${name}#${tag} PUUID: ${puuid.substring(0, 8)}...`)
+            console.log(`[INFO] ${user.username}が登録完了しました。Riot ID: ${name}#${tag} PUUID: ${puuid.substring(0, 8)}...`);
             await interaction.editReply({ embeds: [embed] });
         } else if (subcommand === "removelolacc") {
             await interaction.deferReply({
@@ -155,7 +155,7 @@ module.exports = {
                                     }))
                                 )
                         )
-                    )
+                    );
                 await interaction.editReply({
                     content: `LoLアカウントを選択するメニューをDMに送信しました。ご確認ください。`
                 });
@@ -183,7 +183,7 @@ module.exports = {
                     }
                 });
             }
-            console.log(`[INFO] ${user.username}がRiot IDの登録を解除しました。`)
+            console.log(`[INFO] ${user.username}がRiot IDの登録を解除しました。`);
         }
     }
-}
+};

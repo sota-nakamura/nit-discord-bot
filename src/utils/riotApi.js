@@ -72,7 +72,7 @@ async function getActiveGame(puuid) {
         const game = await rAPI.spectator.getBySummonerId({
             region: "jp1",
             summonerId: puuid
-        })
+        });
 
         // Find user participant to get their selected champion
         const participant = game.participants.find(p => p.puuid === puuid);

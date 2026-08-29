@@ -2,7 +2,7 @@ const { SlashCommandBuilder, MessageFlags, EmbedBuilder, ModalBuilder, StringSel
 const Reminder = require("../models/Reminder");
 const { v4: uuidv4 } = require("uuid");
 const { createScheduledTask } = require("../utils/scheduler");
-const dayjs = require("dayjs")
+const dayjs = require("dayjs");
 const parseTime = require("../utils/parseTime");
 
 module.exports = {
@@ -125,9 +125,9 @@ module.exports = {
             const reminderSelectLabel = new LabelBuilder()
                 .setLabel("リマインダーを選択")
                 .setDescription("削除するリマインダーを選択してください")
-                .setStringSelectMenuComponent(reminderSelect)
+                .setStringSelectMenuComponent(reminderSelect);
             modal.addLabelComponents(reminderSelectLabel);
             await interaction.showModal(modal);
         }
     }
-}
+};

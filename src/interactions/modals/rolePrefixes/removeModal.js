@@ -13,4 +13,4 @@ module.exports = {
         await RolePrefix.remove(role.id);
         await interaction.editReply({ content: `ロール **${role.name}** の接頭辞を削除しました。` });
     }
-}
+};

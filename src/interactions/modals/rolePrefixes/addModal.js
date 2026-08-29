@@ -10,4 +10,4 @@ module.exports = {
         await RolePrefix.set(role.id, prefix);
         await interaction.editReply({ content: `ロール **${role.name}** の接頭辞を **${prefix}** に設定しました。`, flags: MessageFlags.Ephemeral });
     }
-}
+};

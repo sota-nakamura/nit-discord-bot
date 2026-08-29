@@ -43,7 +43,7 @@ module.exports = {
             return interaction.reply({
                 content: "u cant use this command lil bro",
                 flags: [MessageFlags.Ephemeral]
-            })
+            });
         }
         const subcommand = interaction.options.getSubcommand();
         if (subcommand === "join") {
@@ -115,12 +115,12 @@ module.exports = {
             if (account) {
                 try {
                     let game = await getActiveGame(account.puuid);
-                    let title = `**${account.riot_id_name}#${account.riot_id_tag}**は現在試合中です!`
-                    let status = "試合中"
+                    let title = `**${account.riot_id_name}#${account.riot_id_tag}**は現在試合中です!`;
+                    let status = "試合中";
                     if (!game) {
                         game = await getLatestMatchStats(account.puuid);
-                        title = `**${account.riot_id_name}#${account.riot_id_tag}**の最新の試合結果`
-                        status = game.win ? "勝利" : "敗北" || "不明"
+                        title = `**${account.riot_id_name}#${account.riot_id_tag}**の最新の試合結果`;
+                        status = game.win ? "勝利" : "敗北" || "不明";
                     }
                     const champData = await getChampionData(game.championId);
                     const embed = new EmbedBuilder()
@@ -149,7 +149,7 @@ module.exports = {
                     console.error("Error fetching live game from Riot API in test command:", error);
                 }
             } else {
-                await interaction.editReply(`**${target.username}**のRiotアカウントは登録されていません。`)
+                await interaction.editReply(`**${target.username}**のRiotアカウントは登録されていません。`);
             }
         } else if (subcommand === "notfunny") {
             await db.prepare("INSERT INTO funny_vote (user_id, not_funny_count) VALUES (?, 10)").run(interaction.user.id);

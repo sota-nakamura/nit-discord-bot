@@ -8,7 +8,7 @@ const {
     ButtonStyle
 } = require("discord.js");
 const RolePrefix = require("../models/RolePrefix");
-const Prefix = require("../utils/prefix")
+const Prefix = require("../utils/prefix");
 
 module.exports = {
     data: new SlashCommandBuilder()
