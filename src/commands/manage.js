@@ -156,6 +156,32 @@ module.exports = {
                                 )
                         )
                     )
+                await interaction.editReply({
+                    content: `LoLアカウントを選択するメニューをDMに送信しました。ご確認ください。`
+                });
+                await interaction.user.send({
+                    content: `**${user.username}** のlolアカウントを選択してください。`,
+                    components: [accountSelect]
+                });
+                // use collector
+                const collector = interaction.user.createMessageComponentCollector({
+                    time: 60000
+                });
+                collector.on("collect", async i => {
+                    const puuid = account.find(acc => acc.id === i.values[0]).puuid;
+                    await LoLAccount.unregister(puuid);
+                    await i.update({
+                        content: `**${user.username}** のlolアカウントを削除しました。`,
+                        components: []
+                    });
+                });
+                collector.on("end", async collected => {
+                    if (collected.size === 0) {
+                        await interaction.user.send({
+                            content: `**${user.username}** のlolアカウントの登録解除はキャンセルされました。`
+                        });
+                    }
+                });
             }
             console.log(`[INFO] ${user.username}がRiot IDの登録を解除しました。`)
         }

@@ -82,12 +82,64 @@ module.exports = {
         }
 
         else if (subcommand === "unregister") {
-            await LoLAccount.unregister(interaction.user.id);
-            await interaction.reply({
-                content: "Riot ID の連携を解除しました。",
+            await interaction.deferReply({
                 flags: MessageFlags.Ephemeral
             });
-            console.log(`[INFO] ${interaction.user.username}がRiot IDの登録を解除しました。`)
+            const user = interaction.user;
+            const account = await LoLAccount.get(user.id);
+            if (!account) {
+                return interaction.editReply({
+                    content: "そのユーザーにはlolアカウントが登録されていません。"
+                });
+            }
+            if (account.length == 1) {
+                await LoLAccount.unregister(account[0].puuid);
+                await interaction.editReply({
+                    content: `**${user.username}** のlolアカウントを削除しました。`
+                });
+            } else {
+                const accountSelect = new ContainerBuilder()
+                    .addComponents(
+                        new ActionRowBuilder().addComponents(
+                            new StringSelectMenuBuilder()
+                                .setCustomId(`remove-lol-acc-${user.id}`)
+                                .setPlaceholder("削除するアカウントを選択してください")
+                                .addOptions(
+                                    ...account.map(acc => ({
+                                        label: `${acc.riot_id_name}#${acc.riot_id_tag}`,
+                                        value: acc.id
+                                    }))
+                                )
+                        )
+                    )
+                await interaction.editReply({
+                    content: `LoLアカウントを選択するメニューをDMに送信しました。ご確認ください。`
+                });
+                await interaction.user.send({
+                    content: `**${user.username}** のlolアカウントを選択してください。`,
+                    components: [accountSelect]
+                });
+                // use collector
+                const collector = interaction.user.createMessageComponentCollector({
+                    time: 60000
+                });
+                collector.on("collect", async i => {
+                    const puuid = account.find(acc => acc.id === i.values[0]).puuid;
+                    await LoLAccount.unregister(puuid);
+                    await i.update({
+                        content: `**${user.username}** のlolアカウントを削除しました。`,
+                        components: []
+                    });
+                });
+                collector.on("end", async collected => {
+                    if (collected.size === 0) {
+                        await interaction.user.send({
+                            content: `**${user.username}** のlolアカウントの登録解除はキャンセルされました。`
+                        });
+                    }
+                });
+            }
+            console.log(`[INFO] ${user.username}がRiot IDの登録を解除しました。`);
         }
 
         else if (subcommand === "status") {
