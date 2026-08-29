@@ -1,11 +1,11 @@
 const { MessageFlags } = require("discord.js");
-const TemporaryVC = require("../../models/TemporaryVC");
+const TemporaryVC = require("../../../models/TemporaryVC");
 
 module.exports = {
     customId: "channelPrefModal_",
     async execute(interaction) {
         const channelId = interaction.customId.split("_")[1];
-        const row = TemporaryVC.get(channelId);
+        const row = await TemporaryVC.get(channelId);
         const creatorId = row ? row.creator_id : null;
 
         if (interaction.user.id !== creatorId) {

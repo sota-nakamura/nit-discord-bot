@@ -1,5 +1,5 @@
 const { MessageFlags } = require("discord.js");
-const Reminder = require("../../models/Reminder");
+const Reminder = require("../../../models/Reminder");
 
 module.exports = {
     customId: "delete_reminder_modal",

@@ -10,14 +10,12 @@ const {
     TextInputBuilder,
     TextInputStyle,
     LabelBuilder,
-    ChannelSelectMenuBuilder,
-    ChannelType,
     ButtonBuilder,
     ButtonStyle
 } = require("discord.js");
 
-const welcomeMsg = require("./../models/welcomeMsg");
-const LoLNotification = require("./../models/LoLNotification");
+const welcomeMsg = require("../../models/welcomeMsg");
+const LoLNotification = require("../../models/LoLNotification");
 
 class ServerConfig {
     static createServerConfigContainer() {
@@ -48,10 +46,7 @@ class ServerConfig {
                                     .setValue("welcomeMsg"),
                                 new StringSelectMenuOptionBuilder()
                                     .setLabel("LoL通知機能の設定")
-                                    .setValue("lolNotification"),
-                                new StringSelectMenuOptionBuilder()
-                                    .setLabel("イベント作成機能の設定")
-                                    .setValue("eventCreate")
+                                    .setValue("lolNotification")
                             )
                     )
             )
@@ -75,7 +70,7 @@ class ServerConfig {
     static async createWelcomeMsgConfigModal(guildId) {
         const toggleFeatureCheckbox = new CheckboxBuilder()
             .setCustomId("welcomeMsg_toggle")
-            .setDefault(welcomeMsg.exists(guildId))
+            .setDefault(await welcomeMsg.exists(guildId))
         const toggleFeatureLabel = new LabelBuilder()
             .setLabel("ウェルカムメッセージ機能の有効化")
             .setCheckboxComponent(toggleFeatureCheckbox)
@@ -100,10 +95,10 @@ class ServerConfig {
         welcomeMsgModal.addLabelComponents(toggleFeatureLabel, textInputLabel)
         return welcomeMsgModal
     }
-    static createLoLConfigModal(guildId) {
+    static async createLoLConfigModal(guildId) {
         const toggleFeatureCheckbox = new CheckboxBuilder()
             .setCustomId("lolNotification_toggle")
-            .setDefault(LoLNotification.isEnabledSync(guildId))
+            .setDefault(await LoLNotification.isEnabled(guildId))
         const toggleFeatureLabel = new LabelBuilder()
             .setLabel("LoL通知機能の有効化")
             .setCheckboxComponent(toggleFeatureCheckbox)
@@ -114,25 +109,6 @@ class ServerConfig {
 
         lolNotificationModal.addLabelComponents(toggleFeatureLabel)
         return lolNotificationModal
-    }
-    static createEventConfigModal(guildId) {
-        const modal = new ModalBuilder()
-            .setCustomId("eventCreateConfigModal")
-            .setTitle("イベント作成機能の設定")
-
-        const eventNotificationChannelSelectMenu = new ChannelSelectMenuBuilder()
-            .setCustomId("eventNotificationChannel")
-            .setChannelTypes(ChannelType.GuildText)
-            .setPlaceholder("イベント作成時に通知するチャンネルを選択")
-            .setRequired(true)
-
-        const eventNotificationChannelLabel = new LabelBuilder()
-            .setLabel("イベント作成通知チャンネル")
-            .setDescription("イベント作成時に通知するチャンネルを選択します。")
-            .setChannelSelectMenuComponent(eventNotificationChannelSelectMenu)
-
-        modal.addLabelComponents(eventNotificationChannelLabel)
-        return modal
     }
 }
 

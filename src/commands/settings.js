@@ -4,7 +4,7 @@ const {
     MessageFlags
 } = require("discord.js");
 
-const ServerConfig = require("../utils/serverconfig");
+const ServerConfig = require("../utils/components/serverconfig");
 
 module.exports = {
     data: new SlashCommandBuilder()
