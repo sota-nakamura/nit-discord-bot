@@ -137,7 +137,7 @@ module.exports = {
                 });
             }
             if (account.length == 1) {
-                await LoLAccount.unregister(user.id);
+                await LoLAccount.unregister(account[0].puuid);
                 await interaction.editReply({
                     content: `**${user.username}** のlolアカウントを削除しました。`
                 });

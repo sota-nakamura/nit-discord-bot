@@ -56,7 +56,7 @@ async function refreshPuuidIfNeeded(puuid) {
             console.log(`[INFO] Attempting to refresh PUUID for ${account.riot_id_name}#${account.riot_id_tag} due to key change.`);
             const newPuuid = await getPuuid(account.riot_id_name, account.riot_id_tag);
             if (newPuuid && newPuuid !== puuid) {
-                LoLAccount.register(account.discord_user_id, account.riot_id_name, account.riot_id_tag, newPuuid);
+                await LoLAccount.register(account.discord_user_id, account.riot_id_name, account.riot_id_tag, newPuuid);
                 console.log(`[INFO] Successfully refreshed PUUID for ${account.riot_id_name}#${account.riot_id_tag}: ${puuid.substring(0, 8)}... -> ${newPuuid.substring(0, 8)}...`);
                 return newPuuid;
             }

@@ -8,32 +8,6 @@ db.prepare("CREATE TABLE IF NOT EXISTS role_prefix (role_id TEXT, prefix TEXT)")
 db.prepare("CREATE TABLE IF NOT EXISTS temporary_vcs (channel_id TEXT PRIMARY KEY, creator_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS vc_prefs (user_id TEXT PRIMARY KEY, name TEXT, bitrate INTEGER, member_limit INTEGER, notify_log INTEGER DEFAULT 0, read_message INTEGER DEFAULT 0)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS netatweet (guild_id TEXT PRIMARY KEY, display_channel_id TEXT, netatweet_channel_id TEXT, reaction_count INTEGER)").run();
-try {
-    const info = db.prepare("PRAGMA table_info(netatweet_list)").all();
-    const userIdPK = info.find(col => col.name === "user_id" && col.pk === 1);
-    if (userIdPK) {
-        db.prepare("DROP TABLE netatweet_list").run();
-    }
-} catch (e) {
-    // Ignore
-}
-
-try {
-    const info = db.prepare("PRAGMA table_info(lol_accounts)").all();
-    const discordUserIdPK = info.find(col => col.name === "discord_user_id" && col.pk > 0);
-    if (discordUserIdPK) {
-        // SQLite does not support dropping primary key. We must rename the table, create the new one without PK, copy data, and drop the old one.
-        db.transaction(() => {
-            db.prepare("ALTER TABLE lol_accounts RENAME TO lol_accounts_old").run();
-            db.prepare("CREATE TABLE lol_accounts (discord_user_id TEXT, riot_id_name TEXT, riot_id_tag TEXT, puuid TEXT)").run();
-            db.prepare("INSERT INTO lol_accounts SELECT discord_user_id, riot_id_name, riot_id_tag, puuid FROM lol_accounts_old").run();
-            db.prepare("DROP TABLE lol_accounts_old").run();
-        })();
-    }
-} catch (e) {
-    // Table might not exist yet, which is fine, CREATE TABLE IF NOT EXISTS will handle it
-}
-
 db.prepare("CREATE TABLE IF NOT EXISTS netatweet_list (message_id TEXT PRIMARY KEY, user_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS lol_notification (user_id TEXT PRIMARY KEY)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS welcome_msg (guild_id TEXT PRIMARY KEY, message TEXT)").run();
@@ -42,5 +16,33 @@ db.prepare("CREATE TABLE IF NOT EXISTS funny_vote (user_id TEXT PRIMARY KEY, fun
 db.prepare("CREATE TABLE IF NOT EXISTS lol_accounts (discord_user_id TEXT, riot_id_name TEXT, riot_id_tag TEXT, puuid TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS reminder (reminder_id UUID PRIMARY KEY, user_id TEXT, time INTEGER, message TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS impersonated_messages (message_id TEXT PRIMARY KEY, user_id TEXT)").run();
+db.prepare("CREATE TABLE IF NOT EXISTS reisho_dic (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT NOT NULL, type TEXT NOT NULL)").run();
+
+db.run = (sql, ...params) => {
+    try {
+        return db.prepare(sql).run(...params);
+    } catch (err) {
+        console.error(`[DB ERROR] Run failed: "${sql}" | Params:`, params, err);
+        throw err;
+    }
+};
+
+db.get = (sql, ...params) => {
+    try {
+        return db.prepare(sql).get(...params);
+    } catch (err) {
+        console.error(`[DB ERROR] Get failed: "${sql}" | Params:`, params, err);
+        throw err;
+    }
+};
+
+db.all = (sql, ...params) => {
+    try {
+        return db.prepare(sql).all(...params);
+    } catch (err) {
+        console.error(`[DB ERROR] All failed: "${sql}" | Params:`, params, err);
+        throw err;
+    }
+};
 
 module.exports = db;

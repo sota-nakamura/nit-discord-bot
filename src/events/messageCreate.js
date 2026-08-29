@@ -38,7 +38,7 @@ module.exports = {
         }
         const tempVC = TemporaryVC.get(message.channelId)
         if (tempVC) {
-            const prefs = TemporaryVC.getPrefs(tempVC.creator_id)
+            const prefs = await TemporaryVC.getPrefs(tempVC.creator_id)
             if (prefs?.read_message === 1) {
                 let content = message.content.length > 50 ? message.content.slice(0, 50) + "以下略" : message.content;
                 content = content.replace(/https?:\/\/\S+/g, "URL省略");

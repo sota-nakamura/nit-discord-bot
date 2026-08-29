@@ -5,14 +5,14 @@ module.exports = {
     customId: "channelPref_",
     async execute(interaction) {
         const channelId = interaction.customId.split("_")[1];
-        const row = TemporaryVC.get(channelId);
+        const row = await TemporaryVC.get(channelId);
         const creatorId = row ? row.creator_id : null;
 
         if (interaction.user.id !== creatorId && interaction.user.id !== process.env.BOT_OWNER_ID) {
             return interaction.reply({ content: "作成者のみがチャンネル設定を変更できます。", flags: MessageFlags.Ephemeral });
         }
 
-        const prefs = creatorId ? TemporaryVC.getPrefs(creatorId) : null;
+        const prefs = creatorId ? await TemporaryVC.getPrefs(creatorId) : null;
         const currentName = prefs?.name || interaction.channel.name;
         const currentBitrate = prefs?.bitrate ? (prefs.bitrate / 1000) : interaction.channel.bitrate / 1000;
         const currentLimit = prefs?.member_limit !== undefined ? prefs.member_limit : (interaction.channel.userLimit || 0);

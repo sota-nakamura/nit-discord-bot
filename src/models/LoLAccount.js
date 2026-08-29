@@ -2,25 +2,26 @@ const db = require("./Database");
 
 class LoLAccount {
     static async register(discordUserId, riotIdName, riotIdTag, puuid) {
-        const stmt = db.prepare(
-            "INSERT INTO lol_accounts (discord_user_id, riot_id_name, riot_id_tag, puuid) VALUES (?, ?, ?, ?)"
+        return db.run(
+            "INSERT INTO lol_accounts (discord_user_id, riot_id_name, riot_id_tag, puuid) VALUES (?, ?, ?, ?)",
+            discordUserId, riotIdName, riotIdTag, puuid
         );
-        await stmt.run(discordUserId, riotIdName, riotIdTag, puuid);
     }
 
-    static async unregister(discordUserId) {
-        const stmt = db.prepare("DELETE FROM lol_accounts WHERE discord_user_id = ?");
-        await stmt.run(discordUserId);
+    static async unregister(puuid) {
+        return db.run("DELETE FROM lol_accounts WHERE puuid = ?", puuid);
     }
 
     static async get(discordUserId) {
-        const stmt = db.prepare("SELECT * FROM lol_accounts WHERE discord_user_id = ?");
-        return await stmt.get(discordUserId);
+        return db.get("SELECT * FROM lol_accounts WHERE discord_user_id = ?", discordUserId);
+    }
+
+    static async getByPUUID(puuid) {
+        return db.get("SELECT * FROM lol_accounts WHERE puuid = ?", puuid);
     }
 
     static async getAll() {
-        const stmt = db.prepare("SELECT * FROM lol_accounts");
-        return await stmt.all();
+        return db.all("SELECT * FROM lol_accounts");
     }
 }
 

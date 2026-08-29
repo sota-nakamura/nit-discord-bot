@@ -27,7 +27,7 @@ module.exports = {
             if (reaction.emoji.name === "⭐" && reaction.count >= netatweetconfig.reaction_count) {
                 if (!Netatweet.isPosted(message.id)) {
                     // Save to DB first to avoid race conditions
-                    Netatweet.addPosted(message.author.id, message.id, reaction.count);
+                    await Netatweet.addPosted(message.author.id, message.id, reaction.count);
 
                     const displayChannel = await message.guild.channels.fetch(netatweetconfig.display_channel_id).catch(() => null);
                     if (displayChannel) {

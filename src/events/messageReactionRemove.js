@@ -24,8 +24,8 @@ module.exports = {
         if (message.channel.id === config.netatweet_channel_id) {
             if (reaction.emoji.name === "⭐") {
                 if (reaction.count < config.reaction_count) {
-                    if (Netatweet.isPosted(message.id)) {
-                        Netatweet.removePosted(message.id);
+                    if (await Netatweet.isPosted(message.id)) {
+                        await Netatweet.removePosted(message.id);
 
                         const displayChannel = await message.guild.channels.fetch(config.display_channel_id).catch(() => null);
                         if (displayChannel) {

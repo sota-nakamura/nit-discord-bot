@@ -1,7 +1,7 @@
 const { Events, ChannelType, PermissionFlagsBits, MessageFlags } = require("discord.js");
 const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, VoiceConnectionStatus, entersState } = require("@discordjs/voice");
 const TemporaryVC = require("../models/TemporaryVC");
-const createVCConfigContainer = require("../utils/tempvc");
+const createVCConfigContainer = require("../utils/components/tempvc");
 const { playTTS, cleanupPlayer, audioPlayers } = require("../utils/tts");
 const { getAvailableBot, getBotForChannel } = require("../utils/botpool");
 
@@ -13,7 +13,7 @@ module.exports = {
         // Create temporary VC
         if (newState.channelId === process.env.TEMPVC_CHANNEL_ID && oldState.channelId !== newState.channelId && newState.channel.members.size === 1) {
             try {
-                const saved = TemporaryVC.getPrefs(newState.member.user.id);
+                const saved = await TemporaryVC.getPrefs(newState.member.user.id);
                 const newChannelName = saved?.name || `${newState.member.user.displayName}のVC`;
                 const newChannelBitrate = saved?.bitrate || 64000;
                 const newChannelMemberLimit = saved?.member_limit || 0;
@@ -33,7 +33,7 @@ module.exports = {
                 });
 
                 // record to database
-                TemporaryVC.create(newChannel.id, newState.member.user.id);
+                await TemporaryVC.create(newChannel.id, newState.member.user.id);
 
                 // move user to temporary VC
                 await newState.member.voice.setChannel(newChannel.id);
@@ -97,9 +97,9 @@ module.exports = {
         // notify member join
         if (newState.channelId && oldState.channelId !== newState.channelId && !newState.member.user.bot) {
             if (newState.channelId !== process.env.TEMPVC_CHANNEL_ID) {
-                const joinedVC = TemporaryVC.get(newState.channelId);
+                const joinedVC = await TemporaryVC.get(newState.channelId);
                 if (joinedVC) {
-                    const prefs = TemporaryVC.getPrefs(joinedVC.creator_id);
+                    const prefs = await TemporaryVC.getPrefs(joinedVC.creator_id);
                     if (prefs?.notify_log === 1) {
                         const bot = getBotForChannel(newState.guild.id, newState.channelId, botPool);
                         if (bot) {
@@ -116,7 +116,7 @@ module.exports = {
         // handle member exit & VC deletion (skip if bot)
         if (oldState.channelId && oldState.channelId !== newState.channelId && !oldState.member.user.bot) {
             let oldChannel = oldState.channel;
-            const createdVC = TemporaryVC.get(oldState.channelId);
+            const createdVC = await TemporaryVC.get(oldState.channelId);
 
             if (!oldChannel) {
                 try {
@@ -133,7 +133,7 @@ module.exports = {
                     if (oldState.channelId === process.env.TEMPVC_CHANNEL_ID) return;
 
                     try {
-                        if (TemporaryVC.exists(oldState.channelId)) {
+                        if (await TemporaryVC.exists(oldState.channelId)) {
                             const bot = getBotForChannel(oldState.guild.id, oldState.channelId, botPool);
                             if (bot) {
                                 const connection = getVoiceConnection(oldState.guild.id, bot.client.user.id);
@@ -144,14 +144,14 @@ module.exports = {
                             cleanupPlayer(oldState.channelId);
 
                             await oldChannel.delete();
-                            TemporaryVC.delete(oldState.channelId);
+                            await TemporaryVC.delete(oldState.channelId);
                         }
                     } catch (error) {
                         console.error("[ERROR] VCの削除に失敗しました:", error);
                     }
                 } else if (createdVC && !oldState.member.user.bot) {
                     // Notify member exit (channel still has human members)
-                    const prefs = TemporaryVC.getPrefs(createdVC.creator_id);
+                    const prefs = await TemporaryVC.getPrefs(createdVC.creator_id);
                     if (prefs?.notify_log === 1) {
                         const bot = getBotForChannel(oldState.guild.id, oldState.channelId, botPool);
                         if (bot) {

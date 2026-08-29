@@ -42,7 +42,7 @@ module.exports = {
             const displayChannel = interaction.options.getChannel("display_channel");
             const netatweetChannel = interaction.options.getChannel("netatweet_channel");
             const reactionCount = interaction.options.getInteger("reaction_count");
-            if (Netatweet.isEnabled(interaction.guild.id)) {
+            if (await Netatweet.isEnabled(interaction.guild.id)) {
                 await interaction.reply({
                     content: "すでにセットアップされています。",
                     flags: [MessageFlags.Ephemeral]

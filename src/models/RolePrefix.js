@@ -2,31 +2,30 @@ const db = require("./Database");
 
 class RolePrefix {
     static async get(roleId) {
-        return db.prepare("SELECT * FROM role_prefix WHERE role_id = ?").get(roleId);
+        return db.get("SELECT * FROM role_prefix WHERE role_id = ?", roleId);
     }
 
     static async set(roleId, prefix) {
         const existing = await this.get(roleId);
         if (existing) {
-            await db.prepare("UPDATE role_prefix SET prefix = ? WHERE role_id = ?").run(prefix, roleId);
+            await db.run("UPDATE role_prefix SET prefix = ? WHERE role_id = ?", prefix, roleId);
         } else {
-            await db.prepare("INSERT INTO role_prefix (role_id, prefix) VALUES (?, ?)").run(roleId, prefix);
+            await db.run("INSERT INTO role_prefix (role_id, prefix) VALUES (?, ?)", roleId, prefix);
         }
     }
 
     static async remove(roleId) {
-        return await db.prepare("DELETE FROM role_prefix WHERE role_id = ?").run(roleId);
+        return db.run("DELETE FROM role_prefix WHERE role_id = ?", roleId);
     }
 
     static async getAll() {
-        return await db.prepare("SELECT * FROM role_prefix").all();
+        return db.all("SELECT * FROM role_prefix");
     }
 
     static async restore(prefixes) {
-        db.prepare("DELETE FROM role_prefix").run();
-        const insert = db.prepare("INSERT INTO role_prefix (role_id, prefix) VALUES (?, ?)");
+        db.run("DELETE FROM role_prefix");
         for (const p of prefixes) {
-            insert.run(p.role_id, p.prefix);
+            db.run("INSERT INTO role_prefix (role_id, prefix) VALUES (?, ?)", p.role_id, p.prefix);
         }
     }
 }

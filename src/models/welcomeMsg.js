@@ -1,22 +1,22 @@
 const db = require("./Database");
 
 class WelcomeMsg {
-    static getMsg(guildId) {
-        return db.prepare("SELECT * FROM welcome_msg WHERE guild_id = ?").get(guildId);
+    static async getMsg(guildId) {
+        return db.get("SELECT * FROM welcome_msg WHERE guild_id = ?", guildId);
     }
-    static setMsg(guildId, message) {
-        const existing = this.getMsg(guildId);
+    static async setMsg(guildId, message) {
+        const existing = await this.getMsg(guildId);
         if (existing) {
-            return db.prepare("UPDATE welcome_msg SET message = ? WHERE guild_id = ?").run(message, guildId);
+            return db.run("UPDATE welcome_msg SET message = ? WHERE guild_id = ?", message, guildId);
         } else {
-            return db.prepare("INSERT INTO welcome_msg (guild_id, message) VALUES (?, ?)").run(guildId, message);
+            return db.run("INSERT INTO welcome_msg (guild_id, message) VALUES (?, ?)", guildId, message);
         }
     }
-    static exists(guildId) {
-        return !!db.prepare("SELECT 1 FROM welcome_msg WHERE guild_id = ?").get(guildId);
+    static async exists(guildId) {
+        return !!await db.get("SELECT 1 FROM welcome_msg WHERE guild_id = ?", guildId);
     }
-    static remove(guildId) {
-        return db.prepare("DELETE FROM welcome_msg WHERE guild_id = ?").run(guildId);
+    static async remove(guildId) {
+        return db.run("DELETE FROM welcome_msg WHERE guild_id = ?", guildId);
     }
 }
 
