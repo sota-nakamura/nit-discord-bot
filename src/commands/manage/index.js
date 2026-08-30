@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { executeLol } = require("./lol");
-const { executeAddLolAcc } = require("./addlolacc");
-const { executeRemoveLolAcc } = require("./removelolacc");
+const { executeAddLolAcc } = require("./addlolaccount");
+const { executeRemoveLolAcc } = require("./removelolaccount");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -20,7 +20,7 @@ module.exports = {
         )
         .addSubcommand(subcommand =>
             subcommand
-                .setName("addlolacc")
+                .setName("addlolaccount")
                 .setDescription("lolアカウントの追加")
                 .addStringOption(option =>
                     option
@@ -43,7 +43,7 @@ module.exports = {
         )
         .addSubcommand(subcommand =>
             subcommand
-                .setName("removelolacc")
+                .setName("removelolaccount")
                 .setDescription("lolアカウントの削除")
                 .addUserOption(option =>
                     option
@@ -65,9 +65,9 @@ module.exports = {
 
         if (subcommand === "lol") {
             await executeLol(interaction);
-        } else if (subcommand === "addlolacc") {
+        } else if (subcommand === "addlolaccount") {
             await executeAddLolAcc(interaction);
-        } else if (subcommand === "removelolacc") {
+        } else if (subcommand === "removelolaccount") {
             await executeRemoveLolAcc(interaction);
         }
     }

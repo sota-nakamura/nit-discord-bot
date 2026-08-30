@@ -8,26 +8,33 @@ function loadCommands(client) {
     const entries = fs.readdirSync(commandsPath, { withFileTypes: true });
 
     for (const entry of entries) {
-        let filePath;
         if (entry.isDirectory()) {
-            // read index.js in sub directory
-            const indexPath = path.join(commandsPath, entry.name, "index.js");
-            if (!fs.existsSync(indexPath)) continue;
-            filePath = indexPath;
-        } else if (entry.name.endsWith(".js")) {
-            filePath = path.join(commandsPath, entry.name);
-        } else {
-            continue;
-        }
+            const dirPath = path.join(commandsPath, entry.name);
+            const indexPath = path.join(dirPath, "index.js");
 
-        const command = require(filePath);
-        if ("data" in command && "execute" in command) {
-            client.commands.set(command.data.name, command);
-        } else {
-            console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+            if (fs.existsSync(indexPath)) {
+                // if index.js exists, load index.js
+                loadCommand(client, indexPath);
+            } else {
+                // if index.js doesn't exist, load all .js files
+                const files = fs.readdirSync(dirPath).filter(f => f.endsWith(".js"));
+                for (const file of files) {
+                    loadCommand(client, path.join(dirPath, file));
+                }
+            }
+        } else if (entry.name.endsWith(".js")) {
+            loadCommand(client, path.join(commandsPath, entry.name));
         }
     }
 }
 
-module.exports = { loadCommands };
+function loadCommand(client, filePath) {
+    const command = require(filePath);
+    if ("data" in command && "execute" in command) {
+        client.commands.set(command.data.name, command);
+    } else {
+        console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+    }
+}
 
+module.exports = { loadCommands };
