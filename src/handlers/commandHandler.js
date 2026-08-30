@@ -5,10 +5,21 @@ const { Collection } = require("discord.js");
 function loadCommands(client) {
     client.commands = new Collection();
     const commandsPath = path.join(__dirname, "../commands");
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".js"));
+    const entries = fs.readdirSync(commandsPath, { withFileTypes: true });
 
-    for (const file of commandFiles) {
-        const filePath = path.join(commandsPath, file);
+    for (const entry of entries) {
+        let filePath;
+        if (entry.isDirectory()) {
+            // read index.js in sub directory
+            const indexPath = path.join(commandsPath, entry.name, "index.js");
+            if (!fs.existsSync(indexPath)) continue;
+            filePath = indexPath;
+        } else if (entry.name.endsWith(".js")) {
+            filePath = path.join(commandsPath, entry.name);
+        } else {
+            continue;
+        }
+
         const command = require(filePath);
         if ("data" in command && "execute" in command) {
             client.commands.set(command.data.name, command);
@@ -19,3 +30,4 @@ function loadCommands(client) {
 }
 
 module.exports = { loadCommands };
+
