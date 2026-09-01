@@ -8,7 +8,7 @@ module.exports = {
         const row = await TemporaryVC.get(channelId);
         const creatorId = row ? row.creator_id : null;
 
-        if (interaction.user.id !== creatorId) {
+        if (interaction.user.id !== (creatorId && process.env.BOT_OWNER_ID)) {
             return interaction.reply({ content: "作成者のみが設定を変更できます。", flags: MessageFlags.Ephemeral });
         }
 
