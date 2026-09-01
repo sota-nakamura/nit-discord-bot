@@ -26,6 +26,10 @@ class TemporaryVC {
         return db.get("SELECT * FROM temporary_vcs WHERE channel_id = ?", channelId);
     }
 
+    static async getAll() {
+        return db.all("SELECT * FROM temporary_vcs");
+    }
+
     static async delete(channelId) {
         return db.run("DELETE FROM temporary_vcs WHERE channel_id = ?", channelId);
     }

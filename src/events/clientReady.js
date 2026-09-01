@@ -8,15 +8,91 @@ const {
 } = require("discord.js");
 const { start15MinScheduler } = require("../utils/scheduler");
 const LoLNotification = require("../models/LoLNotification");
+const TemporaryVC = require("../models/TemporaryVC");
+const { joinVoiceChannel, createAudioPlayer, VoiceConnectionStatus, entersState } = require("@discordjs/voice");
+const { getAvailableBot } = require("../utils/botpool");
+const { cleanupPlayer, audioPlayers } = require("../utils/tts");
 
 module.exports = {
     name: Events.ClientReady,
     once: true,
-    execute(client) {
+    async execute(client) {
         client.user.setPresence({
             status: "online",
             activities: [{ name: "情報統合思念体様〜♥", type: ActivityType.Custom }]
         });
+        // reconnect vc if temp vc remains
+        const botPool = client.botPool;
+        const tempVCs = await TemporaryVC.getAll();
+        const guild = client.guilds.cache.get(process.env.GUILD_ID);
+        for (const vc of tempVCs) {
+            // Find the channel across all guilds (DB has no guild_id column)
+            const channel = guild.channels.cache.get(vc.channel_id);
+            if (!channel) {
+                // Channel no longer exists — clean up stale DB entry
+                await TemporaryVC.delete(vc.channel_id);
+                continue;
+            }
+
+            const humanMembers = channel.members.filter(m => !m.user.bot).size;
+            if (humanMembers === 0) {
+                // No human members left — delete the VC and DB record
+                try {
+                    await channel.delete();
+                } catch (e) {
+                    console.error("[ERROR] 起動時のVC削除に失敗:", e);
+                }
+                await TemporaryVC.delete(vc.channel_id);
+                continue;
+            }
+
+            // Reconnect a bot from the pool
+            const bot = getAvailableBot(channel.guild.id, botPool);
+            if (!bot) {
+                console.log(`[WARN] 再接続に利用可能なBotがありません: ${channel.name}`);
+                continue;
+            }
+
+            const botGuild = bot.client.guilds.cache.get(channel.guild.id);
+            if (!botGuild) {
+                console.error(`[ERROR] Bot ${bot.index} がギルド ${channel.guild.id} に参加していません`);
+                continue;
+            }
+
+            const connection = joinVoiceChannel({
+                channelId: vc.channel_id,
+                guildId: channel.guild.id,
+                adapterCreator: botGuild.voiceAdapterCreator,
+                selfDeaf: true,
+                group: bot.client.user.id,
+            });
+            const player = createAudioPlayer();
+            connection.subscribe(player);
+            audioPlayers.set(vc.channel_id, player);
+            player.on("error", (error) => console.error("[ERROR] TTS playback:", error));
+
+            // auto-reconnect on disconnect (mirrors voiceStateUpdate.js)
+            connection.on(VoiceConnectionStatus.Disconnected, async () => {
+                try {
+                    await Promise.race([
+                        entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+                        entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+                    ]);
+                } catch (e) {
+                    if (connection.state.status !== VoiceConnectionStatus.Destroyed) {
+                        try {
+                            connection.rejoin();
+                        } catch (err) {
+                            console.error(`[ERROR] Bot ${bot.index} VC再接続に失敗:`, err);
+                            connection.destroy();
+                            cleanupPlayer(vc.channel_id);
+                        }
+                    }
+                }
+            });
+
+            console.log(`[INFO] Bot ${bot.index} が ${channel.name} に再接続しました`);
+        }
 
         start15MinScheduler({
             name: "LoLプレイヤーカウント",
