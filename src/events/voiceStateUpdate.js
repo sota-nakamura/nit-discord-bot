@@ -1,8 +1,9 @@
 const { Events, ChannelType, PermissionFlagsBits, MessageFlags } = require("discord.js");
-const { joinVoiceChannel, getVoiceConnection, createAudioPlayer, VoiceConnectionStatus, entersState } = require("@discordjs/voice");
+const { getVoiceConnection } = require("@discordjs/voice");
+const { connectToVC } = require("../utils/voiceConnection");
 const TemporaryVC = require("../models/TemporaryVC");
 const createVCConfigContainer = require("../utils/components/tempvc");
-const { playTTS, cleanupPlayer, audioPlayers } = require("../utils/tts");
+const { playTTS, cleanupPlayer } = require("../utils/tts");
 const { getAvailableBot, getBotForChannel } = require("../utils/botpool");
 
 module.exports = {
@@ -48,46 +49,21 @@ module.exports = {
 
                 // bot joins the VC and stays permanently
                 const bot = getAvailableBot(newState.guild.id, botPool);
-                if (bot) {
-                    const botGuild = bot.client.guilds.cache.get(newState.guild.id);
-                    if (botGuild) {
-                        const connection = joinVoiceChannel({
-                            channelId: newChannel.id,
-                            guildId: newState.guild.id,
-                            adapterCreator: botGuild.voiceAdapterCreator,
-                            selfDeaf: true,
-                            group: bot.client.user.id
-                        });
-                        const player = createAudioPlayer();
-                        connection.subscribe(player);
-                        audioPlayers.set(newChannel.id, player);
-                        player.on("error", (error) => console.error("[ERROR] TTS playback:", error));
-
-                        // auto-reconnect on disconnect
-                        connection.on(VoiceConnectionStatus.Disconnected, async () => {
-                            try {
-                                await Promise.race([
-                                    entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
-                                    entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
-                                ]);
-                            } catch (e) {
-                                // could not auto-reconnect, rejoin manually
-                                if (connection.state.status !== VoiceConnectionStatus.Destroyed) {
-                                    try {
-                                        connection.rejoin();
-                                    } catch (err) {
-                                        console.error(`[ERROR] Bot ${bot.index} VC再接続に失敗:`, err);
-                                        connection.destroy();
-                                        cleanupPlayer(newChannel.id);
-                                    }
-                                }
-                            }
-                        });
-                    } else {
-                        console.error(`[ERROR] Bot ${bot.index} is not in the guild ${newState.guild.id}`);
-                    }
+                if (!bot) {
+                    console.log(`[WARN] No bot available for voice connection: ${newChannel.name}`);
+                    return;
+                }
+                const botGuild = bot.client.guilds.cache.get(newState.guild.id);
+                if (botGuild) {
+                    connectToVC({
+                        channelId: newChannel.id,
+                        guildId: newState.guild.id,
+                        adapterCreator: botGuild.voiceAdapterCreator,
+                        botUserId: bot.client.user.id,
+                        botIndex: bot.index,
+                    });
                 } else {
-                    console.log("No available bot found in the pool for voice notifications.");
+                    console.error(`[ERROR] Bot ${bot.index} is not in the guild ${newState.guild.id}`);
                 }
             } catch (error) {
                 console.error("[ERROR] VC作成またはメッセージ送信に失敗しました:", error);
