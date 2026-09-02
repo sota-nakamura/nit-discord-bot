@@ -13,7 +13,8 @@ const customEnToKana = new Map([
     ["lol", "ロル"],
     ["w", "ワラ"],
     ["ww", "ワラワラ"],
-    ["www", "ワラワラ"]
+    ["www", "ワラワラ"],
+    ["juggernaut", "ジャガーノート"]
 ]);
 
 // Consonant fallback for leftover Latin letters (e.g. word-ending consonants)

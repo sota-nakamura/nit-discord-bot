@@ -5,7 +5,7 @@ module.exports = {
     customId: "channelPref_",
     async execute(interaction) {
         const channelId = interaction.customId.split("_")[1];
-        const row = await TemporaryVC.get(channelId);
+        const row = await TemporaryVC.getVC(channelId);
         const creatorId = row ? row.creator_id : null;
 
         if (interaction.user.id !== creatorId && interaction.user.id !== process.env.BOT_OWNER_ID) {
