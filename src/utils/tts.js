@@ -1,5 +1,5 @@
-const path = require("node:path");
 const { Readable } = require("node:stream");
+const { MsEdgeTTS, OUTPUT_FORMAT } = require("msedge-tts");
 const { createAudioPlayer, createAudioResource, AudioPlayerStatus } = require("@discordjs/voice");
 const { convertEnglishToKatakana } = require("./dictConverter");
 const TemporaryVC = require("../models/TemporaryVC");
@@ -40,22 +40,42 @@ function preprocess(text) {
     text = text.replace(/<@!?\d+>/g, "メンション");
     text = text.replace(/<#\d+>/g, "チャンネル");
     text = text.replace(/<a?:\w+:\d+>/g, "");
-    // Replace Discord markdown and symbols that break phonetics
-    text = text.replace(/[*_~|`#$+%^&=/\\]+/g, " ");
+    // Remove Discord markdown and symbols
+    text = text.replace(/[*_~|`#$+%^&=/\\]+/g, "");
+
+    // Read standalone/multiple question marks and exclamation marks aloud
+    if (/^[?？!！\s]+$/.test(text)) {
+        text = text.replace(/[?？]/g, "はてな ").replace(/[!！]/g, "びっくり ");
+    } else {
+        text = text.replace(/[?？]{2,}/g, " はてな？");
+    }
+
     // Convert English words and phrases to Katakana using dictionary
     text = convertEnglishToKatakana(text);
+
+    // Strip spaces so OpenJTalk doesn't insert unwanted pauses/読点
+    text = text.replace(/\s+/g, "");
     return text;
 }
 
 function sanitizeKoe(koe) {
     if (!koe) return "";
-    // Clean up illegal characters not supported by AquesTalk phonetic syntax
-    let clean = koe.replace(/[^ぁ-んァ-ヶー_/'?.,、。]/g, "");
-    // Fix invalid underscores (only voiceless vowels can follow _)
+    // Clean up illegal characters not supported by AquesTalk phonetic syntax (keep ? and ？)
+    let clean = koe.replace(/[^ぁ-んァ-ヶー_/'?.,、。？]/g, "");
+    // Convert trailing / illegal sokuon (っ / ッ) before punctuation or pause to prolonged sound
+    clean = clean.replace(/[っッ]+(?=[。、/.,?\s_']|$)/g, "ー");
+    // Remove isolated / leading prolonged sound marks
+    clean = clean.replace(/(?:^|[/、。,.\s])ー+/g, "");
+    // Fix invalid unvoiced consonants (AquesTalk only supports _ before [シスキツチヒフピプ])
     clean = clean.replace(/_([^シスキツチヒフピプ])/g, "$1");
     // Remove consecutive or trailing special phonetic symbols
     clean = clean.replace(/[_/']+(?=[_/']|$)/g, "");
-    return clean.trim();
+    clean = clean.replace(/\s+/g, "");
+    clean = clean.trim();
+
+    // Must contain at least one valid kana character
+    if (!/[ぁ-んァ-ヶ]/.test(clean)) return "";
+    return clean;
 }
 
 async function textToKatakana(rawText) {
@@ -66,7 +86,37 @@ async function textToKatakana(rawText) {
     return sanitizeKoe(result);
 }
 
+const EDGE_VOICES = [
+    "ja-JP-NanamiNeural",
+    "ja-JP-KeitaNeural",
+    "ja-JP-AoiNeural",
+    "ja-JP-DaichiNeural",
+    "ja-JP-MayuNeural",
+    "ja-JP-NaokiNeural",
+    "ja-JP-ShioriNeural"
+];
+
+async function edgeTts(text, voice = "ja-JP-NanamiNeural") {
+    try {
+        const ttsClient = new MsEdgeTTS();
+        await ttsClient.setMetadata(voice, OUTPUT_FORMAT.WEBM_24KHZ_16BIT_MONO_OPUS);
+        const { audioStream } = ttsClient.toStream(text, { volume: "-60%", rate: "medium" });
+        return audioStream;
+    } catch (e) {
+        console.warn("[WARN] Edge TTS error, falling back to AquesTalk:", e.message);
+        return null;
+    }
+}
+
 async function tts(text, voice = "f1", speed = 100) {
+    if (voice && (voice.startsWith("ja-JP-") || EDGE_VOICES.includes(voice))) {
+        const edgeStream = await edgeTts(text, voice);
+        if (edgeStream) return edgeStream;
+        // If Edge TTS failed or returned null, fallback to AquesTalk f1
+        voice = "f1";
+    }
+    console.log(voice);
+
     const koe = await textToKatakana(text);
     if (!koe || koe.length === 0) return null;
 
@@ -76,11 +126,19 @@ async function tts(text, voice = "f1", speed = 100) {
         return Readable.from(Buffer.from(wav));
     } catch (err) {
         console.warn("[WARN] AquesTalk synthesis fallback:", err.message);
-        // Fallback: strip accents/unvoicing and try with plain kana
-        const plain = koe.replace(/[_/']/g, "");
-        if (!plain || plain.trim().length === 0) return null;
-        const wav = aquestalk.run(plain, speed);
-        return Readable.from(Buffer.from(wav));
+        try {
+            // Fallback: strip accents/unvoicing and any isolated symbols
+            let plain = koe.replace(/[_/']/g, "");
+            plain = plain.replace(/[っッ]+(?=[。、/.,?\s]|$)/g, "");
+            plain = plain.replace(/^ー+/g, "").trim();
+            if (!plain || !/[ぁ-んァ-ヶ]/.test(plain)) return null;
+
+            const wav = aquestalk.run(plain, speed);
+            return Readable.from(Buffer.from(wav));
+        } catch (e2) {
+            console.warn("[WARN] AquesTalk fallback also failed:", e2.message);
+            return null;
+        }
     }
 }
 
@@ -105,7 +163,7 @@ async function playTTS(connection, channelId, text, customVoice = null) {
             }
         }
 
-        const stream = await tts(text, voice || "f1");
+        const stream = await tts(text, voice);
         if (!stream) return;
 
         const resource = createAudioResource(stream);

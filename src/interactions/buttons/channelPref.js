@@ -68,44 +68,79 @@ module.exports = {
             .setRequired(true)
             .addOptions(
                 {
-                    label: "女性1",
+                    label: "女性1 (ゆっくり/AquesTalk)",
                     value: "f1",
                     default: prefs?.voice_type === "f1"
                 },
                 {
-                    label: "女性2",
+                    label: "女性2 (ゆっくり/AquesTalk)",
                     value: "f2",
                     default: prefs?.voice_type === "f2"
                 },
                 {
-                    label: "男性1",
+                    label: "男性1 (ゆっくり/AquesTalk)",
                     value: "m1",
                     default: prefs?.voice_type === "m1"
                 },
                 {
-                    label: "男性2",
+                    label: "男性2 (ゆっくり/AquesTalk)",
                     value: "m2",
                     default: prefs?.voice_type === "m2"
                 },
                 {
-                    label: "中性",
+                    label: "中性 (ゆっくり/AquesTalk)",
                     value: "imd1",
                     default: prefs?.voice_type === "imd1"
                 },
                 {
-                    label: "機械1",
+                    label: "機械1 (ゆっくり/AquesTalk)",
                     value: "jgr",
                     default: prefs?.voice_type === "jgr"
                 },
                 {
-                    label: "機械2",
+                    label: "機械2 (ゆっくり/AquesTalk)",
                     value: "dvd",
                     default: prefs?.voice_type === "dvd"
                 },
                 {
-                    label: "ロボット",
+                    label: "ロボット (ゆっくり/AquesTalk)",
                     value: "r1",
                     default: prefs?.voice_type === "r1"
+                },
+                {
+                    label: "七海 (Edge TTS 女性)",
+                    value: "ja-JP-NanamiNeural",
+                    default: prefs?.voice_type === "ja-JP-NanamiNeural"
+                },
+                {
+                    label: "圭太 (Edge TTS 男性)",
+                    value: "ja-JP-KeitaNeural",
+                    default: prefs?.voice_type === "ja-JP-KeitaNeural"
+                },
+                {
+                    label: "葵 (Edge TTS 女性)",
+                    value: "ja-JP-AoiNeural",
+                    default: prefs?.voice_type === "ja-JP-AoiNeural"
+                },
+                {
+                    label: "大地 (Edge TTS 男性)",
+                    value: "ja-JP-DaichiNeural",
+                    default: prefs?.voice_type === "ja-JP-DaichiNeural"
+                },
+                {
+                    label: "真夕 (Edge TTS 女性)",
+                    value: "ja-JP-MayuNeural",
+                    default: prefs?.voice_type === "ja-JP-MayuNeural"
+                },
+                {
+                    label: "直樹 (Edge TTS 男性)",
+                    value: "ja-JP-NaokiNeural",
+                    default: prefs?.voice_type === "ja-JP-NaokiNeural"
+                },
+                {
+                    label: "志織 (Edge TTS 女性)",
+                    value: "ja-JP-ShioriNeural",
+                    default: prefs?.voice_type === "ja-JP-ShioriNeural"
                 }
             );
         const voiceTypeLabel = new LabelBuilder()

@@ -16,11 +16,6 @@ const CONSONANT_FALLBACK = {
     c: "ク", j: "ジ", v: "ブ", w: "ウ", y: "イ", x: "クス", q: "ク"
 };
 
-/**
- * Convert Romaji text to Katakana pronunciation using wanakana.
- * @param {string} str
- * @returns {string}
- */
 function romajiToKatakana(str) {
     if (!str) return "";
 
@@ -36,14 +31,21 @@ function romajiToKatakana(str) {
     return kana;
 }
 
+const customEnToKana = new Map([
+    ["lol", "ロル"],
+    ["w", "ワラ"],
+    ["ww", "ワラワラ"],
+    ["www", "ワラワラ"],
+    ["juggernaut", "ジャガーノート"],
+    ["discord", "ディスコード"]
+]);
+
 class DictConverter {
     constructor(dictPath = DEFAULT_DICT_PATH) {
         this.dictPath = dictPath;
-        this.enToKana = new Map();
+        this.enToKana = new Map(customEnToKana);
         this.kanaToEn = new Map();
         this.loaded = false;
-        this._sortedKanaKeys = null;
-        this._kanaRegex = null;
     }
 
     load() {
@@ -59,49 +61,33 @@ class DictConverter {
             try {
                 data = JSON.parse(raw);
             } catch (e) {
-                // Fallback to legacy comma‑separated format
-                console.warn('[WARN] Failed to parse dictionary as JSON, falling back to legacy format');
-                const lines = raw.split(",");
+                console.warn("[WARN] Failed to parse dictionary as JSON, falling back to legacy format", e);
                 data = {};
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    const parts = line.split(":");
-                    if (parts.length >= 2) {
-                        const kana = parts[0].trim();
-                        const en = parts[1].trim().toLowerCase();
-                        data[kana] = en;
-                    }
-                }
             }
-            // Support both object map {kana: en} and array of {kana, en}
+
             if (Array.isArray(data)) {
                 for (const entry of data) {
-                    if (!entry.kana || !entry.en) continue;
-                    const kana = entry.kana.trim();
+                    if (!entry.en || !entry.kana) continue;
                     const en = entry.en.trim().toLowerCase();
+                    const kana = entry.kana.trim();
                     if (!this.enToKana.has(en)) this.enToKana.set(en, kana);
                     if (!this.kanaToEn.has(kana)) this.kanaToEn.set(kana, en);
                 }
             } else {
-                for (const [kana, en] of Object.entries(data)) {
-                    const kanaKey = kana.trim();
+                for (const [en, kana] of Object.entries(data)) {
                     const enVal = String(en).trim().toLowerCase();
-                    if (!this.enToKana.has(enVal)) this.enToKana.set(enVal, kanaKey);
-                    if (!this.kanaToEn.has(kanaKey)) this.kanaToEn.set(kanaKey, enVal);
+                    const kanaVal = String(kana).trim();
+                    if (!this.enToKana.has(enVal)) this.enToKana.set(enVal, kanaVal);
+                    if (!this.kanaToEn.has(kanaVal)) this.kanaToEn.set(kanaVal, enVal);
                 }
             }
             this.loaded = true;
         } catch (e) {
-            console.error('[ERROR] Failed to load dictionary:', e);
+            console.error("[ERROR] Failed to load dictionary:", e);
             this.loaded = true; // prevent infinite retries
         }
     }
 
-    /**
-     * Look up a single English word or phrase in the dictionary.
-     * @param {string} english
-     * @returns {string|null}
-     */
     lookupEnToKana(english) {
         this.load();
         const lower = english.trim().toLowerCase();
@@ -109,22 +95,6 @@ class DictConverter {
         return null;
     }
 
-    /**
-     * Look up a single Katakana word or phrase in the dictionary.
-     * @param {string} katakana
-     * @returns {string|null}
-     */
-    lookupKanaToEn(katakana) {
-        this.load();
-        const trimmed = katakana.trim();
-        return this.kanaToEn.get(trimmed) || null;
-    }
-
-    /**
-     * Convert English words in text to Katakana using the dictionary or Romaji reading.
-     * @param {string} text
-     * @returns {string}
-     */
     convertEnglishToKatakana(text) {
         this.load();
         if (!text) return "";
@@ -144,38 +114,12 @@ class DictConverter {
         });
     }
 
-    /**
-     * Convert a single English word to Katakana (dictionary match -> Romaji reading fallback).
-     * @param {string} word
-     * @returns {string}
-     */
     convertSingleWord(word) {
-        const lower = word.toLowerCase();
-        if (customEnToKana.has(lower)) return customEnToKana.get(lower);
+        const lower = word.trim().toLowerCase();
         if (this.enToKana.has(lower)) return this.enToKana.get(lower);
 
         // Fallback: convert unknown English/Romaji to Katakana reading
         return romajiToKatakana(word);
-    }
-
-    /**
-     * Convert Katakana words in text to English using the dictionary.
-     * @param {string} text
-     * @returns {string}
-     */
-    convertKatakanaToEnglish(text) {
-        this.load();
-        if (!text) return "";
-
-        if (!this._sortedKanaKeys) {
-            // Sort by length descending for greedy/longest matching
-            this._sortedKanaKeys = Array.from(this.kanaToEn.keys()).sort((a, b) => b.length - a.length);
-            if (this._sortedKanaKeys.length === 0) return text;
-            const pattern = this._sortedKanaKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
-            this._kanaRegex = new RegExp(pattern, "g");
-        }
-
-        return text.replace(this._kanaRegex, (match) => this.kanaToEn.get(match) || match);
     }
 }
 
@@ -186,8 +130,6 @@ module.exports = {
     defaultConverter,
     romajiToKatakana,
     convertEnglishToKatakana: (text) => defaultConverter.convertEnglishToKatakana(text),
-    convertKatakanaToEnglish: (text) => defaultConverter.convertKatakanaToEnglish(text),
-    lookupEnToKana: (en) => defaultConverter.lookupEnToKana(en),
-    lookupKanaToEn: (kana) => defaultConverter.lookupKanaToEn(kana)
+    lookupEnToKana: (en) => defaultConverter.lookupEnToKana(en)
 };
 
