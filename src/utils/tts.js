@@ -96,7 +96,7 @@ async function playTTS(connection, channelId, text, customVoice = null) {
 
         let voice = customVoice;
         if (!voice) {
-            const vc = await TemporaryVC.get(channelId);
+            const vc = await TemporaryVC.getVC(channelId);
             if (vc) {
                 const prefs = await TemporaryVC.getPrefs(vc.creator_id);
                 if (prefs?.voice_type) {

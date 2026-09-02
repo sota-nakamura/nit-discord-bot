@@ -22,14 +22,14 @@ module.exports = {
         });
         // reconnect vc if temp vc remains
         const botPool = client.botPool;
-        const tempVCs = await TemporaryVC.getAll();
+        const tempVCs = await TemporaryVC.getAllVC();
         const guild = client.guilds.cache.get(process.env.GUILD_ID);
         for (const vc of tempVCs) {
             // Find the channel across all guilds (DB has no guild_id column)
             const channel = guild.channels.cache.get(vc.channel_id);
             if (!channel) {
                 // Channel no longer exists — clean up stale DB entry
-                await TemporaryVC.delete(vc.channel_id);
+                await TemporaryVC.deleteVC(vc.channel_id);
                 continue;
             }
 
@@ -41,7 +41,7 @@ module.exports = {
                 } catch (e) {
                     console.error("[ERROR] Failed to delete VC on startup:", e);
                 }
-                await TemporaryVC.delete(vc.channel_id);
+                await TemporaryVC.deleteVC(vc.channel_id);
                 continue;
             }
 

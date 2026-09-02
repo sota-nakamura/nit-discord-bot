@@ -1,15 +1,15 @@
 const db = require("./Database");
 
 class TemporaryVC {
-    static async create(channelId, creatorId) {
+    static async createVC(channelId, creatorId) {
         return db.run("INSERT INTO temporary_vcs (channel_id, creator_id) VALUES (?, ?)", channelId, creatorId);
     }
 
-    static async exists(channelId) {
+    static async existsVC(channelId) {
         return !!await db.get("SELECT 1 FROM temporary_vcs WHERE channel_id = ?", channelId);
     }
 
-    static async save(userId, name, memberLimit, notifyLog = 0, readMessage = 0, voiceType = "f1") {
+    static async savePrefs(userId, name, memberLimit, notifyLog = 0, readMessage = 0, voiceType = "f1") {
         const existing = !!await db.get("SELECT 1 FROM vc_prefs WHERE user_id = ?", userId);
         if (existing) {
             return db.run("UPDATE vc_prefs SET name = ?, member_limit = ?, notify_log = ?, read_message = ?, voice_type = ? WHERE user_id = ?", name, memberLimit, notifyLog, readMessage, voiceType, userId);
@@ -22,15 +22,15 @@ class TemporaryVC {
         return db.get("SELECT * from vc_prefs WHERE user_id = ?", userId);
     }
 
-    static async get(channelId) {
+    static async getVC(channelId) {
         return db.get("SELECT * FROM temporary_vcs WHERE channel_id = ?", channelId);
     }
 
-    static async getAll() {
+    static async getAllVC() {
         return db.all("SELECT * FROM temporary_vcs");
     }
 
-    static async delete(channelId) {
+    static async deleteVC(channelId) {
         return db.run("DELETE FROM temporary_vcs WHERE channel_id = ?", channelId);
     }
 }

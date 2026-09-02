@@ -32,7 +32,7 @@ module.exports = {
                 });
 
                 // record to database
-                await TemporaryVC.create(newChannel.id, newState.member.user.id);
+                await TemporaryVC.createVC(newChannel.id, newState.member.user.id);
 
                 // move user to temporary VC
                 await newState.member.voice.setChannel(newChannel.id);
@@ -71,7 +71,7 @@ module.exports = {
         // notify member join
         if (newState.channelId && oldState.channelId !== newState.channelId && !newState.member.user.bot) {
             if (newState.channelId !== process.env.TEMPVC_CHANNEL_ID) {
-                const joinedVC = await TemporaryVC.get(newState.channelId);
+                const joinedVC = await TemporaryVC.getVC(newState.channelId);
                 if (joinedVC) {
                     const prefs = await TemporaryVC.getPrefs(joinedVC.creator_id);
                     if (prefs?.notify_log === 1) {
@@ -90,7 +90,7 @@ module.exports = {
         // handle member exit & VC deletion (skip if bot)
         if (oldState.channelId && oldState.channelId !== newState.channelId && !oldState.member.user.bot) {
             let oldChannel = oldState.channel;
-            const createdVC = await TemporaryVC.get(oldState.channelId);
+            const createdVC = await TemporaryVC.getVC(oldState.channelId);
 
             if (!oldChannel) {
                 try {
@@ -107,7 +107,7 @@ module.exports = {
                     if (oldState.channelId === process.env.TEMPVC_CHANNEL_ID) return;
 
                     try {
-                        if (await TemporaryVC.exists(oldState.channelId)) {
+                        if (await TemporaryVC.existsVC(oldState.channelId)) {
                             const bot = getBotForChannel(oldState.guild.id, oldState.channelId, botPool);
                             if (bot) {
                                 const connection = getVoiceConnection(oldState.guild.id, bot.client.user.id);
@@ -118,7 +118,7 @@ module.exports = {
                             cleanupPlayer(oldState.channelId);
 
                             await oldChannel.delete();
-                            await TemporaryVC.delete(oldState.channelId);
+                            await TemporaryVC.deleteVC(oldState.channelId);
                         }
                     } catch (error) {
                         console.error("[ERROR] VCの削除に失敗しました:", error);

@@ -5,7 +5,7 @@ module.exports = {
     customId: "channelPrefModal_",
     async execute(interaction) {
         const channelId = interaction.customId.split("_")[1];
-        const row = await TemporaryVC.get(channelId);
+        const row = await TemporaryVC.getVC(channelId);
         const creatorId = row ? row.creator_id : null;
 
         if (interaction.user.id !== (creatorId && process.env.BOT_OWNER_ID)) {
@@ -35,7 +35,7 @@ module.exports = {
 
             const selectedVoiceType = voiceType || "f1";
 
-            await TemporaryVC.save(interaction.user.id, newName, userLimit, notifyLog, readMessage, selectedVoiceType);
+            await TemporaryVC.savePrefs(creatorId, newName, userLimit, notifyLog, readMessage, selectedVoiceType);
             await interaction.reply({ content: `チャンネル設定を変更しました。`, flags: MessageFlags.Ephemeral });
         } catch (error) {
             console.error("チャンネル設定の変更に失敗しました:", error);
