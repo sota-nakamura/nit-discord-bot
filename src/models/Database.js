@@ -17,7 +17,12 @@ db.prepare("CREATE TABLE IF NOT EXISTS lol_accounts (discord_user_id TEXT, riot_
 db.prepare("CREATE TABLE IF NOT EXISTS reminder (reminder_id UUID PRIMARY KEY, user_id TEXT, time INTEGER, message TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS impersonated_messages (message_id TEXT PRIMARY KEY, user_id TEXT)").run();
 db.prepare("CREATE TABLE IF NOT EXISTS reisho_dic (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT NOT NULL, type TEXT NOT NULL)").run();
-
+if (!db.prepare("PRAGMA table_info(vc_prefs)").all().some(column => column.name === "voice_type")) {
+    db.prepare("ALTER TABLE vc_prefs ADD COLUMN voice_type TEXT DEFAULT 'f1'").run();
+}
+if (!db.prepare("PRAGMA table_info(vc_prefs)").all().some(column => column.name === "bitrate")) {
+    db.prepare("ALTER TABLE vc_prefs DROP COLUMN bitrate").run();
+}
 db.run = (sql, ...params) => {
     try {
         return db.prepare(sql).run(...params);

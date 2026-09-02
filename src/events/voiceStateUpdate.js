@@ -16,14 +16,12 @@ module.exports = {
             try {
                 const saved = await TemporaryVC.getPrefs(newState.member.user.id);
                 const newChannelName = saved?.name || `${newState.member.user.displayName}のVC`;
-                const newChannelBitrate = saved?.bitrate || 64000;
                 const newChannelMemberLimit = saved?.member_limit || 0;
 
                 const newChannel = await newState.guild.channels.create({
                     name: newChannelName,
                     type: ChannelType.GuildVoice,
                     parent: newState.channel.parent,
-                    bitrate: newChannelBitrate,
                     userLimit: newChannelMemberLimit,
                     permissionOverwrites: [
                         {

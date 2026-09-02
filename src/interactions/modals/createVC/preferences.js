@@ -15,22 +15,10 @@ module.exports = {
         try {
             const channel = await interaction.guild.channels.fetch(channelId);
             const newName = interaction.fields.getTextInputValue("channelNameInput") || `${interaction.user.username}のVC`;
-            const newBitrateInput = interaction.fields.getTextInputValue("channelBitrateInput");
             const newMemberLimitInput = interaction.fields.getTextInputValue("channelMemberLimitInput");
             const notifyLog = interaction.fields.getCheckbox("notifyLogCheckbox") ? 1 : 0;
             const readMessage = interaction.fields.getCheckbox("readMessageCheckbox") ? 1 : 0;
-
-            let bitrateBps = channel.bitrate;
-            if (newBitrateInput) {
-                const parsedBitrate = parseInt(newBitrateInput, 10);
-                if (!isNaN(parsedBitrate)) {
-                    if (parsedBitrate >= 8 && parsedBitrate <= 384) {
-                        bitrateBps = parsedBitrate * 1000;
-                    } else if (parsedBitrate >= 8000 && parsedBitrate <= 384000) {
-                        bitrateBps = parsedBitrate;
-                    }
-                }
-            }
+            const voiceType = interaction.fields.getStringSelectValues("voiceTypeSelect");
 
             let userLimit = channel.userLimit;
             if (newMemberLimitInput) {
@@ -42,11 +30,12 @@ module.exports = {
 
             await channel.edit({
                 name: newName,
-                bitrate: bitrateBps,
                 userLimit: userLimit
             });
 
-            await TemporaryVC.save(interaction.user.id, newName, bitrateBps, userLimit, notifyLog, readMessage);
+            const selectedVoiceType = voiceType || "f1";
+
+            await TemporaryVC.save(interaction.user.id, newName, userLimit, notifyLog, readMessage, selectedVoiceType);
             await interaction.reply({ content: `チャンネル設定を変更しました。`, flags: MessageFlags.Ephemeral });
         } catch (error) {
             console.error("チャンネル設定の変更に失敗しました:", error);

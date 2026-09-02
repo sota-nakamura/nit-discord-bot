@@ -1,4 +1,4 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder, MessageFlags, CheckboxBuilder } = require("discord.js");
+const { ModalBuilder, TextInputBuilder, TextInputStyle, LabelBuilder, MessageFlags, CheckboxBuilder, StringSelectMenuBuilder } = require("discord.js");
 const TemporaryVC = require("../../models/TemporaryVC");
 
 module.exports = {
@@ -35,18 +35,6 @@ module.exports = {
             .setDescription("このVCのチャンネル名を設定できます(空にするとデフォルト)")
             .setTextInputComponent(channelNameInput);
 
-        const channelBitrateInput = new TextInputBuilder()
-            .setCustomId("channelBitrateInput")
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder("8 ~ 96")
-            .setValue(currentBitrate.toString())
-            .setRequired(true);
-
-        const channelBitrateLabel = new LabelBuilder()
-            .setLabel("チャンネルの音質を設定")
-            .setDescription("64 ~ 96で数字のみを入力してください。(単位はkbps)")
-            .setTextInputComponent(channelBitrateInput);
-
         const channelMemberLimitInput = new TextInputBuilder()
             .setCustomId("channelMemberLimitInput")
             .setStyle(TextInputStyle.Short)
@@ -74,8 +62,59 @@ module.exports = {
             .setLabel("メッセージ読み上げの有効化")
             .setDescription("このVCのメッセージ読み上げを有効にします")
             .setCheckboxComponent(readMessageCheckbox);
+        const voiceTypeSelect = new StringSelectMenuBuilder()
+            .setCustomId("voiceTypeSelect")
+            .setPlaceholder("読み上げボイスを選択")
+            .setRequired(true)
+            .addOptions(
+                {
+                    label: "女性1",
+                    value: "f1",
+                    default: prefs?.voice_type === "f1"
+                },
+                {
+                    label: "女性2",
+                    value: "f2",
+                    default: prefs?.voice_type === "f2"
+                },
+                {
+                    label: "男性1",
+                    value: "m1",
+                    default: prefs?.voice_type === "m1"
+                },
+                {
+                    label: "男性2",
+                    value: "m2",
+                    default: prefs?.voice_type === "m2"
+                },
+                {
+                    label: "中性",
+                    value: "imd1",
+                    default: prefs?.voice_type === "imd1"
+                },
+                {
+                    label: "機械1",
+                    value: "jgr",
+                    default: prefs?.voice_type === "jgr"
+                },
+                {
+                    label: "機械2",
+                    value: "dvd",
+                    default: prefs?.voice_type === "dvd"
+                },
+                {
+                    label: "ロボット",
+                    value: "r1",
+                    default: prefs?.voice_type === "r1"
+                }
+            );
+        const voiceTypeLabel = new LabelBuilder()
+            .setLabel("読み上げボイスの選択")
+            .setDescription("このVCの読み上げボイスを選択します")
+            .setStringSelectMenuComponent(voiceTypeSelect);
 
-        modal.addLabelComponents(channelNameLabel, channelBitrateLabel, channelMemberLimitLabel, notifyLogLabel, readMessageLabel);
+
+        modal.addLabelComponents(channelNameLabel, channelMemberLimitLabel, notifyLogLabel, readMessageLabel, voiceTypeLabel);
 
         await interaction.showModal(modal);
     }
