@@ -12,7 +12,7 @@ class ReishoDic {
         return await db.get("SELECT * FROM reisho_dic WHERE type = ? AND content = ?", type ? "単語" : "フレーズ", content);
     }
     static async save(content, type) {
-        if (!content || !type) {
+        if (!content || typeof type !== 'number') {
             throw new Error("Content and type are required");
         }
         const exists = await db.get("SELECT * FROM reisho_dic WHERE type = ? AND content = ?", type ? "単語" : "フレーズ", content);
