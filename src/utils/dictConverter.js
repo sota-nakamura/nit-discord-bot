@@ -2,20 +2,12 @@ const fs = require("node:fs");
 const path = require("node:path");
 const wanakana = require("wanakana");
 
-const DEFAULT_DICT_PATH = path.resolve(__dirname, "../../assets/dict/pairs.tsv");
+const DEFAULT_DICT_PATH = path.resolve(__dirname, "../../assets/dict/data.json");
 
 const numMap = {
     "0": "ゼロ", "1": "イチ", "2": "ニ", "3": "サン", "4": "ヨン",
     "5": "ゴ", "6": "ロク", "7": "ナナ", "8": "ハチ", "9": "キュウ"
 };
-
-const customEnToKana = new Map([
-    ["lol", "ロル"],
-    ["w", "ワラ"],
-    ["ww", "ワラワラ"],
-    ["www", "ワラワラ"],
-    ["juggernaut", "ジャガーノート"]
-]);
 
 // Consonant fallback for leftover Latin letters (e.g. word-ending consonants)
 const CONSONANT_FALLBACK = {
@@ -62,23 +54,46 @@ class DictConverter {
                 this.loaded = true;
                 return;
             }
-
-            const content = fs.readFileSync(this.dictPath, "utf-8");
-            const lines = content.split(/\r?\n/);
-            for (const line of lines) {
-                if (!line.trim()) continue;
-                const parts = line.split("\t");
-                if (parts.length >= 2) {
-                    const kana = parts[0].trim();
-                    const en = parts[1].trim().toLowerCase();
+            const raw = fs.readFileSync(this.dictPath, "utf-8");
+            let data;
+            try {
+                data = JSON.parse(raw);
+            } catch (e) {
+                // Fallback to legacy comma‑separated format
+                console.warn('[WARN] Failed to parse dictionary as JSON, falling back to legacy format');
+                const lines = raw.split(",");
+                data = {};
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    const parts = line.split(":");
+                    if (parts.length >= 2) {
+                        const kana = parts[0].trim();
+                        const en = parts[1].trim().toLowerCase();
+                        data[kana] = en;
+                    }
+                }
+            }
+            // Support both object map {kana: en} and array of {kana, en}
+            if (Array.isArray(data)) {
+                for (const entry of data) {
+                    if (!entry.kana || !entry.en) continue;
+                    const kana = entry.kana.trim();
+                    const en = entry.en.trim().toLowerCase();
                     if (!this.enToKana.has(en)) this.enToKana.set(en, kana);
                     if (!this.kanaToEn.has(kana)) this.kanaToEn.set(kana, en);
                 }
+            } else {
+                for (const [kana, en] of Object.entries(data)) {
+                    const kanaKey = kana.trim();
+                    const enVal = String(en).trim().toLowerCase();
+                    if (!this.enToKana.has(enVal)) this.enToKana.set(enVal, kanaKey);
+                    if (!this.kanaToEn.has(kanaKey)) this.kanaToEn.set(kanaKey, enVal);
+                }
             }
             this.loaded = true;
-        } catch (err) {
-            console.error("[ERROR] Failed to load dictionary:", err);
-            this.loaded = true;
+        } catch (e) {
+            console.error('[ERROR] Failed to load dictionary:', e);
+            this.loaded = true; // prevent infinite retries
         }
     }
 
@@ -90,7 +105,6 @@ class DictConverter {
     lookupEnToKana(english) {
         this.load();
         const lower = english.trim().toLowerCase();
-        if (customEnToKana.has(lower)) return customEnToKana.get(lower);
         if (this.enToKana.has(lower)) return this.enToKana.get(lower);
         return null;
     }
@@ -120,9 +134,7 @@ class DictConverter {
             const lower = match.trim().toLowerCase();
 
             // 1. Direct full match (phrase or word in dictionary)
-            if (customEnToKana.has(lower)) return customEnToKana.get(lower);
             if (this.enToKana.has(lower)) return this.enToKana.get(lower);
-
             // 2. Multi-word match: split and convert each word
             if (match.includes(" ")) {
                 return match.split(/\s+/).map(w => this.convertSingleWord(w)).join(" ");
