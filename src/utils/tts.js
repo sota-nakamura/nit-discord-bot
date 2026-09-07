@@ -115,7 +115,6 @@ async function tts(text, voice = "f1", speed = 100) {
         // If Edge TTS failed or returned null, fallback to AquesTalk f1
         voice = "f1";
     }
-    console.log(voice);
 
     const koe = await textToKatakana(text);
     if (!koe || koe.length === 0) return null;

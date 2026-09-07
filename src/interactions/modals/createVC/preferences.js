@@ -6,9 +6,9 @@ module.exports = {
     async execute(interaction) {
         const channelId = interaction.customId.split("_")[1];
         const row = await TemporaryVC.getVC(channelId);
-        const creatorId = row ? row.creator_id : null;
+        const creatorId = row ? row.creator_id : interaction.user.id;
 
-        if (interaction.user.id !== (creatorId && process.env.BOT_OWNER_ID)) {
+        if (interaction.user.id !== process.env.BOT_OWNER_ID && interaction.user.id !== creatorId) {
             return interaction.reply({ content: "作成者のみが設定を変更できます。", flags: MessageFlags.Ephemeral });
         }
 
