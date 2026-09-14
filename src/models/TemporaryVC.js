@@ -14,7 +14,7 @@ class TemporaryVC {
         if (existing) {
             return db.run("UPDATE vc_prefs SET name = ?, member_limit = ?, notify_log = ?, read_message = ?, voice_type = ? WHERE user_id = ?", name, memberLimit, notifyLog, readMessage, voiceType, userId);
         } else {
-            return db.run("INSERT INTO vc_prefs (user_id, name, member_limit, notify_log, read_message, voice_type) VALUES (?, ?, ?, ?, ?, ?, ?)", userId, name, memberLimit, notifyLog, readMessage, voiceType);
+            return db.run("INSERT INTO vc_prefs (user_id, name, member_limit, notify_log, read_message, voice_type) VALUES (?, ?, ?, ?, ?, ?)", userId, name, memberLimit, notifyLog, readMessage, voiceType);
         }
     }
 
