@@ -82,7 +82,7 @@ async function getActiveGame(puuid) {
         const championId = participant ? participant.championId : null;
 
         return {
-            matchId: game.gameId,
+            matchId: region.toUpperCase() + "_" + game.gameId,
             gameMode: game.gameMode,
             gameQueueConfigId: game.gameQueueConfigId,
             championId: championId,
