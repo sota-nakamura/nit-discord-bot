@@ -21,10 +21,10 @@ module.exports = {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const targetUser = interaction.options.getUser("user");
         const targetMember = interaction.guild.members.cache.get(targetUser.id);
-        const content = interaction.options.getString("message");
+        const content = interaction.options.getString("message").replace(/\\r\\n|\\n|\\r/g, "\n");
         const channel = interaction.channel;
         const webhook = await channel.createWebhook({
-            name: targetMember.nickname ? targetMember.displayName : targetUser.displayName,
+            name: targetMember?.nickname ? targetMember.displayName : targetUser.displayName,
             avatar: targetUser.displayAvatarURL()
         });
         const reply = await webhook.send({
