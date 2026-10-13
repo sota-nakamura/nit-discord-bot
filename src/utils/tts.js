@@ -3,8 +3,7 @@ const { MsEdgeTTS, OUTPUT_FORMAT } = require("msedge-tts");
 const { createAudioPlayer, createAudioResource, AudioPlayerStatus } = require("@discordjs/voice");
 const { convertEnglishToKatakana } = require("./dictConverter");
 const TemporaryVC = require("../models/TemporaryVC");
-
-const audioPlayers = new Map();
+const { audioPlayers } = require("./voiceConnection");
 
 // Lazy-loaded Kanji2Koe OpenJTalk instance
 let kanji2koePromise = null;
@@ -42,13 +41,6 @@ function preprocess(text) {
     text = text.replace(/<a?:\w+:\d+>/g, "");
     // Remove Discord markdown and symbols
     text = text.replace(/[*_~|`#$+%^&=/\\]+/g, "");
-
-    // Read standalone/multiple question marks and exclamation marks aloud
-    if (/^[?？!！\s]+$/.test(text)) {
-        text = text.replace(/[?？]/g, "はてな ").replace(/[!！]/g, "びっくり ");
-    } else {
-        text = text.replace(/[?？]{2,}/g, " はてな？");
-    }
 
     // Convert English words and phrases to Katakana using dictionary
     text = convertEnglishToKatakana(text);
@@ -178,13 +170,4 @@ async function playTTS(connection, channelId, text, customVoice = null) {
     }
 }
 
-// Clean up audio player for a channel
-function cleanupPlayer(channelId) {
-    const player = audioPlayers.get(channelId);
-    if (player) {
-        player.stop();
-        audioPlayers.delete(channelId);
-    }
-}
-
-module.exports = { playTTS, cleanupPlayer, audioPlayers, textToKatakana, tts };
+module.exports = { playTTS, textToKatakana, tts };
