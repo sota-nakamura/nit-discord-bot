@@ -1,5 +1,6 @@
 const { joinVoiceChannel, createAudioPlayer, VoiceConnectionStatus, entersState } = require("@discordjs/voice");
-const { cleanupPlayer, audioPlayers } = require("./tts");
+
+const audioPlayers = new Map();
 
 function connectToVC({ channelId, guildId, adapterCreator, botUserId, botIndex }) {
     const connection = joinVoiceChannel({
@@ -38,4 +39,13 @@ function connectToVC({ channelId, guildId, adapterCreator, botUserId, botIndex }
     return { connection, player };
 }
 
-module.exports = { connectToVC };
+// Clean up audio player for a channel
+function cleanupPlayer(channelId) {
+    const player = audioPlayers.get(channelId);
+    if (player) {
+        player.stop();
+        audioPlayers.delete(channelId);
+    }
+}
+
+module.exports = { connectToVC, audioPlayers, cleanupPlayer };
