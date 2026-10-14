@@ -8,10 +8,10 @@ async function executePause(interaction) {
     }
     if (queue.paused) {
         queue.resume();
-        await interaction.reply({ embeds: [createInfoEmbed("▶️ 音楽再生を再開しました。")] });
+        await interaction.reply({ embeds: [createInfoEmbed("音楽再生を再開しました。")] });
     } else {
         queue.pause();
-        await interaction.reply({ embeds: [createInfoEmbed("⏸️ 音楽再生を一時停止しました。")] });
+        await interaction.reply({ embeds: [createInfoEmbed("音楽再生を一時停止しました。")] });
     }
 }
 
