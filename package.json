@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon --trace-warnings src/index.js",
+    "web": "node src/dashboard/standalone.js",
     "build": "node scripts/build.js",
     "lint": "eslint . --fix"
   },
@@ -25,6 +26,7 @@
     "dayjs": "^1.11.21",
     "discord.js": "^14.26.4",
     "dotenv": "^17.3.1",
+    "ejs": "^7.0.1",
     "express": "^5.3.0",
     "ffmpeg-static": "^5.3.0",
     "kanji2koe-openjtalk": "^0.1.0",

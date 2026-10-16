@@ -1,0 +1,32 @@
+<%- include('partials/header') %>
+
+    <main class="dashboard-content">
+        <div class="responsive">
+            <article>
+                <h6><i>public</i>参加サーバー</h6>
+                <p id="stat-guilds">
+                    <%= bot.guildCount %>
+                </p>
+            </article>
+            <article>
+                <h6><i>speed</i>レイテンシ</h6>
+                <p id="stat-ping">
+                    <%= bot.ping>= 0 ? bot.ping + ' ms' : '計測中' %>
+                </p>
+            </article>
+            <article>
+                <h6><i>hourglass</i>稼働時間</h6>
+                <p id="stat-uptime">
+                    <%= bot.uptime %>
+                </p>
+            </article>
+            <article>
+                <h6><i>code</i>登録コマンド数</h6>
+                <p id="stat-commands">
+                    <%= bot.commandCount %>
+                </p>
+            </article>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>

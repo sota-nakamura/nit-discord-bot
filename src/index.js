@@ -1,11 +1,10 @@
 require("dotenv").config();
 const { Client, IntentsBitField, Partials } = require("discord.js");
-const http = require("http");
-const querystring = require("node:querystring");
 const { loadCommands } = require("./handlers/commandHandler");
 const { loadEvents } = require("./handlers/eventHandler");
 const { loadInteractions } = require("./handlers/interactionHandler");
 const { REST, Routes } = require("discord.js");
+const { startDashboard } = require("./dashboard");
 
 process.on("unhandledRejection", (reason, promise) => {
     console.error("Unhandled Rejection at:", promise, "reason:", reason);
@@ -78,29 +77,8 @@ loadInteractions(mainBot.client);
 // Attach the bot pool to the main client so event handlers can access it
 mainBot.client.botPool = bots;
 
-// HTTP Server (Keep-alive for hosting)
-http.createServer((req, res) => {
-    if (req.method == "POST") {
-        let data = "";
-        req.on("data", chunk => data += chunk);
-        req.on("end", () => {
-            if (!data) {
-                res.end("No post data");
-                return;
-            }
-            const dataObject = querystring.parse(data);
-            if (dataObject.type == "wake") {
-                console.log("Woke up in post");
-            }
-            res.end();
-        });
-    } else {
-        res.writeHead(200, { "Content-Type": "text/plain" });
-        res.end("Discord Bot is Operating!");
-    }
-}).listen(process.env.PORT || 3000, async () => {
-    console.log("[INFO] Server is running on port " + (process.env.PORT || 3000));
-
+// Web Dashboard (Express & EJS)
+startDashboard(mainBot.client, process.env.PORT || 3000, async () => {
     // Auto register commands for the main bot
     try {
         const commands = Array.from(mainBot.client.commands.values()).map(c => c.data.toJSON());
