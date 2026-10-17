@@ -49,9 +49,8 @@ async function getSummonerId(puuid) {
 
 async function refreshPuuidIfNeeded(puuid) {
     try {
-        const db = require("../models/Database");
         const LoLAccount = require("../models/LoLAccount");
-        const account = db.prepare("SELECT * FROM lol_accounts WHERE puuid = ?").get(puuid);
+        const account = await LoLAccount.getByPUUID(puuid);
         if (account) {
             console.log(`[INFO] Attempting to refresh PUUID for ${account.riot_id_name}#${account.riot_id_tag} due to key change.`);
             const newPuuid = await getPuuid(account.riot_id_name, account.riot_id_tag);

@@ -20,7 +20,11 @@ class Netatweet {
         return !!await db.get("SELECT 1 FROM netatweet_list WHERE message_id = ?", messageId);
     }
     static async addPosted(userId, messageId) {
-        return db.run("INSERT OR REPLACE INTO netatweet_list (message_id, user_id) VALUES (?, ?)", messageId, userId);
+        return db.run(
+            "INSERT INTO netatweet_list (message_id, user_id) VALUES (?, ?) ON CONFLICT (message_id) DO UPDATE SET user_id = EXCLUDED.user_id",
+            messageId,
+            userId
+        );
     }
     static async removePosted(messageId) {
         return db.run("DELETE FROM netatweet_list WHERE message_id = ?", messageId);
