@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon --trace-warnings src/index.js",
-    "build": "node scripts/build.js",
+    "build": "npm install && node scripts/build.js",
     "lint": "eslint . --fix"
   },
   "author": "Satoimo Satosi",
