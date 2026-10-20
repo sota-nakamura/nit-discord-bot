@@ -1,6 +1,7 @@
 node_modules
 .env
-db/database.db
+db/
+db/*.db*
 test.js
 bin/
 cache/

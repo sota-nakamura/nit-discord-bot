@@ -78,6 +78,46 @@ loadInteractions(mainBot.client);
 // Attach the bot pool to the main client so event handlers can access it
 mainBot.client.botPool = bots;
 
+// Models & In-Memory Cache Initialization
+const RolePrefix = require("./models/RolePrefix");
+const TemporaryVC = require("./models/TemporaryVC");
+const WelcomeMsg = require("./models/welcomeMsg");
+const LoLNotification = require("./models/LoLNotification");
+const FunnyVote = require("./models/funnyVote");
+const LoLAccount = require("./models/LoLAccount");
+const Netatweet = require("./models/Netatweet");
+const ReishoDic = require("./models/ReishoDic");
+const Reminder = require("./models/Reminder");
+
+async function initAllCaches() {
+    console.log("[INFO] Initializing in-memory cache for all models...");
+    const start = Date.now();
+    await Promise.all([
+        RolePrefix.initCache(),
+        TemporaryVC.initCache(),
+        WelcomeMsg.initCache(),
+        LoLNotification.initCache(),
+        FunnyVote.initCache(),
+        LoLAccount.initCache(),
+        Netatweet.initCache(),
+        ReishoDic.initCache(),
+        Reminder.initCache()
+    ]);
+    console.log(`[INFO] In-memory cache initialized in ${Date.now() - start}ms.`);
+
+    mainBot.client.cache = {
+        RolePrefix,
+        TemporaryVC,
+        WelcomeMsg,
+        LoLNotification,
+        FunnyVote,
+        LoLAccount,
+        Netatweet,
+        ReishoDic,
+        Reminder
+    };
+}
+
 // HTTP Server (Keep-alive for hosting)
 http.createServer((req, res) => {
     if (req.method == "POST") {
@@ -113,13 +153,20 @@ http.createServer((req, res) => {
     }
 });
 
-// Login all bots
-for (const bot of bots) {
-    bot.client.login(bot.token)
-        .then(() => {
-            console.log(`[INFO] Bot ${bot.index} (${bot.client.user.tag}) logged in successfully.`);
-        })
-        .catch(err => {
-            console.error(`[ERROR] Failed to login Bot ${bot.index}:`, err);
-        });
+// Cache initialization then login all bots
+async function bootstrap() {
+    await initAllCaches();
+
+    for (const bot of bots) {
+        bot.client.login(bot.token)
+            .then(() => {
+                console.log(`[INFO] Bot ${bot.index} (${bot.client.user.tag}) logged in successfully.`);
+            })
+            .catch(err => {
+                console.error(`[ERROR] Failed to login Bot ${bot.index}:`, err);
+            });
+    }
 }
+
+bootstrap();
+

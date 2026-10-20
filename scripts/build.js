@@ -41,12 +41,7 @@ async function setupYtDlp() {
     }
 
     console.log(`[BUILD] Downloading latest yt-dlp binary to: ${path.relative(rootDir, ytDlpPath)}`);
-    await YTDlpWrap.downloadFromGithub(ytDlpPath, undefined, undefined, (progress, downloaded, total) => {
-        if (total > 0) {
-            const percent = ((downloaded / total) * 100).toFixed(1);
-            process.stdout.write(`\r[BUILD] Progress: ${percent}% (${(downloaded / 1024 / 1024).toFixed(1)}MB / ${(total / 1024 / 1024).toFixed(1)}MB)`);
-        }
-    });
+    await YTDlpWrap.downloadFromGithub(ytDlpPath, undefined, undefined);
     console.log('\n[BUILD] yt-dlp download complete!');
 
     const ytDlp = new YTDlpWrap(ytDlpPath);
