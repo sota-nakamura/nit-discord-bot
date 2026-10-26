@@ -20,7 +20,7 @@
     "@fightmegg/riot-api": "^0.0.21",
     "@napi-rs/canvas": "^1.0.0",
     "aquestalk.js": "^1.0.7",
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3": "12.11.1",
     "chrono-node": "^2.10.0",
     "cors": "^2.8.6",
     "dayjs": "^1.11.21",
