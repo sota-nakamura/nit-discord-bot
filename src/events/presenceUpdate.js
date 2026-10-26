@@ -16,8 +16,8 @@ module.exports = {
         const guild = newPresence?.guild || oldPresence?.guild;
         if (!guild) return;
 
-        const oldLolActivity = oldPresence?.activities?.find(a => a.applicationId === "401518684763586560" || a.applicationId === "1402418696126992445" || a.name === "League of Legends");
-        const newLolActivity = newPresence?.activities?.find(a => a.applicationId === "401518684763586560" || a.applicationId === "1402418696126992445" || a.name === "League of Legends");
+        const oldLolActivity = oldPresence?.activities?.find(a => a.applicationId === ("401518684763586560" || "1402418696126992445") || a.name === "League of Legends");
+        const newLolActivity = newPresence?.activities?.find(a => a.applicationId === ("401518684763586560" || "1402418696126992445") || a.name === "League of Legends");
 
         // Fetch notification channel
         const channelId = process.env.LOL_CHANNEL_ID;
