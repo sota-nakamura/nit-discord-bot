@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon --trace-warnings src/index.js",
+    "build": "npm install && node scripts/build.js",
     "lint": "eslint . --fix"
   },
   "author": "Satoimo Satosi",
@@ -19,17 +20,23 @@
     "@fightmegg/riot-api": "^0.0.21",
     "@napi-rs/canvas": "^1.0.0",
     "aquestalk.js": "^1.0.7",
-    "better-sqlite3": "^12.9.0",
+    "better-sqlite3": "12.11.1",
     "chrono-node": "^2.10.0",
+    "cors": "^2.8.6",
     "dayjs": "^1.11.21",
     "discord.js": "^14.26.4",
     "dotenv": "^17.3.1",
+    "express": "^5.3.0",
     "ffmpeg-static": "^5.3.0",
     "kanji2koe-openjtalk": "^0.1.0",
     "kuromoji": "^0.1.2",
     "msedge-tts": "^2.0.5",
+    "opusscript": "^0.0.8",
+    "pg": "^8.23.1",
     "uuid": "^14.0.1",
-    "wanakana": "^5.3.1"
+    "wanakana": "^5.3.1",
+    "yt-dlp-core": "^2.4.0",
+    "yt-dlp-wrap-plus": "^2.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

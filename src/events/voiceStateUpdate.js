@@ -1,9 +1,9 @@
 const { Events, ChannelType, PermissionFlagsBits, MessageFlags } = require("discord.js");
 const { getVoiceConnection } = require("@discordjs/voice");
-const { connectToVC } = require("../utils/voiceConnection");
+const { connectToVC, cleanupPlayer } = require("../utils/voiceConnection");
 const TemporaryVC = require("../models/TemporaryVC");
 const createVCConfigContainer = require("../utils/components/tempvc");
-const { playTTS, cleanupPlayer } = require("../utils/tts");
+const { playTTS } = require("../utils/tts");
 const { getAvailableBot, getBotForChannel } = require("../utils/botpool");
 
 module.exports = {
