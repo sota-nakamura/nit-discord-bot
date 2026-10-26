@@ -65,7 +65,7 @@ app.get("/auth", async (req, res) => {
                 client_secret: process.env.CLIENT_SECRET,
                 code,
                 grant_type: "authorization_code",
-                redirect_uri: "http://localhost:5173/auth"
+                redirect_uri: process.env.DASHBOARD_URL + "/auth"
             }),
         });
         const data = await response.json();
