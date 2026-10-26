@@ -1,4 +1,4 @@
 node_modules
 .env
-db/database.db
+db
 test.js
