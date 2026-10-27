@@ -19,6 +19,8 @@
     "@discordjs/voice": "^0.19.2",
     "@fightmegg/riot-api": "^0.0.21",
     "@napi-rs/canvas": "^1.0.0",
+    "@vuelidate/core": "^2.0.3",
+    "@vuelidate/validators": "^2.0.4",
     "aquestalk.js": "^1.0.7",
     "better-sqlite3": "12.11.1",
     "chrono-node": "^2.10.0",
@@ -43,5 +45,8 @@
     "eslint": "^10.6.0",
     "eslint-plugin-jsdoc": "^63.3.3",
     "nodemon": "^3.1.14"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true
   }
 }

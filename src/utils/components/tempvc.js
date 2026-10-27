@@ -27,9 +27,9 @@ function createVCConfigContainer(channelId, userId) {
                 )
                 .setButtonAccessory(
                     new ButtonBuilder()
-                        .setCustomId(`channelPref_${channelId}`)
                         .setLabel("設定")
-                        .setStyle(ButtonStyle.Primary)
+                        .setStyle(ButtonStyle.Link)
+                        .setURL(`${process.env.DASHBOARD_URL}/settings/vc?channelId=${channelId}`)
                 )
         );
 }
