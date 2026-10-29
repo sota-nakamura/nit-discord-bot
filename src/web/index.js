@@ -8,6 +8,9 @@ app.use(cors({
   credentials: true
 }));
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Discord Bot is Operating!" });
 });
@@ -34,7 +37,7 @@ app.get("/auth", async (req, res) => {
     res.status(response.status).json(data);
   } catch (err) {
     console.error("[OAUTH] token exchange error:", err);
-    res.status(500).json({ error: "internal_server_error", message: err.message });
+    res.status(500).json({ error_name: "OAUTH_INTERNAL_SERVER_ERROR", error: "認証に失敗しました。" });
   }
 });
 

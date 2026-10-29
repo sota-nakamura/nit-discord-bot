@@ -80,6 +80,9 @@ loadInteractions(mainBot.client);
 // Attach the bot pool to the main client so event handlers can access it
 mainBot.client.botPool = bots;
 
+app.set("discordClient", mainBot.client);
+module.exports = mainBot.client;
+
 // Models & In-Memory Cache Initialization
 const RolePrefix = require("./models/RolePrefix");
 const TemporaryVC = require("./models/TemporaryVC");
@@ -123,7 +126,6 @@ async function initAllCaches() {
 // HTTP Server (Keep-alive for hosting)
 http.createServer(app).listen(process.env.PORT || 3000, async () => {
     console.log(`[INFO] HTTP Server is running on port ${process.env.PORT || 3000}`);
-    console.log(`[INFO] Discord Bot is running on port ${process.env.PORT || 3000}`);
 
     // Auto register commands for the main bot
     try {
