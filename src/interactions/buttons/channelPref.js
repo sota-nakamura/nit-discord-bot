@@ -14,7 +14,6 @@ module.exports = {
 
         const prefs = creatorId ? await TemporaryVC.getPrefs(creatorId) : null;
         const currentName = prefs?.name || interaction.channel.name;
-        const currentBitrate = prefs?.bitrate ? (prefs.bitrate / 1000) : interaction.channel.bitrate / 1000;
         const currentLimit = prefs?.member_limit !== undefined ? prefs.member_limit : (interaction.channel.userLimit || 0);
 
         const modal = new ModalBuilder()

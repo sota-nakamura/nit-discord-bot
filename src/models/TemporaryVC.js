@@ -42,7 +42,7 @@ class TemporaryVC {
         return false;
     }
 
-    static async savePrefs(userId, name, memberLimit, notifyLog = 0, readMessage = 0, voiceType = "f1") {
+    static async savePrefs(userId, name, memberLimit = 0, notifyLog = 0, readMessage = 0, voiceType = "f1") {
         const prefObj = {
             user_id: userId,
             name,

@@ -38,12 +38,23 @@ module.exports = {
                 await newState.member.voice.setChannel(newChannel.id);
 
                 // create VC control panel
-                const channelConfigContainer = createVCConfigContainer(newChannel.id, newState.member.user.id);
+                const channelConfigContainer = createVCConfigContainer(newChannel.id, newState.member.user.id, {
+                    name: newChannelName,
+                    member_limit: newChannelMemberLimit,
+                    read_message: saved?.read_message ?? 0,
+                    notify_log: saved?.notify_log ?? 0,
+                    voice_type: saved?.voice_type ?? "f1",
+                });
 
                 await newChannel.send({
                     components: [channelConfigContainer],
                     flags: MessageFlags.IsComponentsV2,
                 });
+
+                // save preferences (if not exists)
+                if (!saved) {
+                    await TemporaryVC.savePrefs(newState.member.user.id, newChannelName, newChannelMemberLimit, 0, 0, "f1");
+                }
 
                 // bot joins the VC and stays permanently
                 const bot = getAvailableBot(newState.guild.id, botPool);
