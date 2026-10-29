@@ -1,84 +1,100 @@
+const { MessageFlags } = require("discord.js");
 const TemporaryVC = require("../../models/TemporaryVC");
+const createVCConfigContainer = require("../../utils/components/tempvc");
 const router = require("express").Router();
-
-router.get("/getprefs/:channelId", async (req, res, next) => {
-    console.log(req.params.channelId)
-    const existsVC = await TemporaryVC.existsVC(req.params.channelId);
-    if (!existsVC) {
-        return res.status(404).json({ error: "Voice channel not found" });
-    }
-    const preference = await TemporaryVC.getPrefs(req.params.channelId);
-    res.json({
-        preference: preference ? preference : {
-            user_id: "",
-            name: "",
-            member_limit: 0,
-            notify_log: false,
-            read_message: false,
-            voice_type: ""
-        },
-        ttl: [{
-            label: "女性1 (ゆっくり/AquesTalk)",
-            value: "f1"
-        },
-        {
-            label: "女性2 (ゆっくり/AquesTalk)",
-            value: "f2"
-        },
-        {
-            label: "男性1 (ゆっくり/AquesTalk)",
-            value: "m1"
-        },
-        {
-            label: "男性2 (ゆっくり/AquesTalk)",
-            value: "m2"
-        },
-        {
-            label: "中性 (ゆっくり/AquesTalk)",
-            value: "imd1"
-        },
-        {
-            label: "機械1 (ゆっくり/AquesTalk)",
-            value: "jgr"
-        },
-        {
-            label: "機械2 (ゆっくり/AquesTalk)",
-            value: "dvd"
-        },
-        {
-            label: "ロボット (ゆっくり/AquesTalk)",
-            value: "r1"
-        },
-        {
-            label: "七海 (Edge TTS 女性)",
-            value: "ja-JP-NanamiNeural"
-        },
-        {
-            label: "圭太 (Edge TTS 男性)",
-            value: "ja-JP-KeitaNeural"
-        },
-        {
-            label: "葵 (Edge TTS 女性)",
-            value: "ja-JP-AoiNeural"
-        },
-        {
-            label: "大地 (Edge TTS 男性)",
-            value: "ja-JP-DaichiNeural"
-        },
-        {
-            label: "真夕 (Edge TTS 女性)",
-            value: "ja-JP-MayuNeural"
-        },
-        {
-            label: "直樹 (Edge TTS 男性)",
-            value: "ja-JP-NaokiNeural"
-        },
-        {
-            label: "志織 (Edge TTS 女性)",
-            value: "ja-JP-ShioriNeural"
+const ttsList = require("../../../config/ttsList.json");
+async function getPrefs (req, res) {
+    const channelId = req.params.channelId;
+    const userId = req.params.userId;
+    if (!channelId && !userId) {
+        return res.status(404).json({ error_name: "MISSING_PARAMETER", error: "パラメータが足りません。" });
+    } else if (channelId) {
+        const vc = await TemporaryVC.getVC(channelId);
+        const preferences = await TemporaryVC.getPrefs(vc.creator_id);
+        return res.status(200).json({
+            preferences,
+            tts: ttsList
+        });
+    } else if (userId) {
+        const preferences = await TemporaryVC.getPrefs(userId);
+        if (!preferences) {
+            return res.status(404).json({ error_name: "PREFERENCES_NOT_FOUND", error: "設定が見つかりませんでした。" });
         }
-        ],
-    });
-});
+        return res.status(200).json({
+            preferences,
+            tts: ttsList
+        });
+    }
+}
+
+async function savePrefs (req, res) {
+    try {
+        const channelId = req.params.channelId;
+        const { userId, name, memberLimit, notifyLog, readMessage, voiceType } = req.body;
+
+        const parsedMemberLimit = Number(memberLimit) || 0;
+        const parsedNotifyLog = notifyLog ? 1 : 0;
+        const parsedReadMessage = readMessage ? 1 : 0;
+        const selectedVoiceType = voiceType || "f1";
+
+        // 1. DBに設定を保存
+        await TemporaryVC.savePrefs(
+            userId,
+            name,
+            parsedMemberLimit,
+            parsedNotifyLog,
+            parsedReadMessage,
+            selectedVoiceType
+        );
+
+        const currentPreferences = {
+            user_id: userId,
+            name,
+            member_limit: parsedMemberLimit,
+            notify_log: parsedNotifyLog,
+            read_message: parsedReadMessage,
+            voice_type: selectedVoiceType
+        };
+
+        if(channelId) {
+            const client = req.app.get("discordClient");
+            if (client) {
+                const channel = client.channels.cache.get(channelId) || await client.channels.fetch(channelId).catch(() => null);
+                if (channel) {
+                    if (channel.isVoiceBased()) {
+                        await channel.edit({
+                            name: name || channel.name,
+                            userLimit: parsedMemberLimit
+                        }).catch(err => console.error("[setprefs channel.edit Error]:", err));
+                    }
+
+                    const messages = await channel.messages.fetch({ limit: 10 }).catch(() => null);
+                    if (messages) {
+                        const controlMessage = messages.find(m => m.author.id === client.user.id);
+                        if (controlMessage) {
+                            const updatedContainer = createVCConfigContainer(channelId, userId, currentPreferences);
+                            await controlMessage.edit({
+                                components: [updatedContainer],
+                                flags: MessageFlags.IsComponentsV2
+                            }).catch(err => console.error("[setprefs controlMessage.edit Error]:", err));
+                        }
+                    }
+                }
+            }
+        }
+
+        res.status(200).json({
+            message: "Settings saved successfully",
+            preference: currentPreferences
+        });
+    } catch (err) {
+        console.error("[setprefs Error]:", err);
+        res.status(500).json({ error: "Failed to save settings", details: err.message });
+    }
+}
+router.get("/channels/:channelId", getPrefs);
+router.get("/preferences/:userId", getPrefs);
+router.post("/channels/:channelId", savePrefs);
+router.post("/preferences", savePrefs);
 
 module.exports = router;
