@@ -11,7 +11,7 @@ module.exports = {
             try {
                 await reaction.fetch();
             } catch (error) {
-                console.error('Something went wrong when fetching the reaction:', error);
+                console.error("Something went wrong when fetching the reaction:", error);
                 return;
             }
         }
@@ -82,7 +82,7 @@ module.exports = {
             const user = message.client.users.cache.get(impersonatedData.user_id);
             if (!user) {
                 await targetUser.send({
-                    content: `ユーザーが見つかりませんでした。`
+                    content: "ユーザーが見つかりませんでした。"
                 }).catch(console.error);
             }
             await targetUser.send({

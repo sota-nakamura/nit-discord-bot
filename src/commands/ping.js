@@ -1,19 +1,19 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
-const { execSync } = require('child_process');
+const { execSync } = require("child_process");
 
 module.exports = {
     data: new SlashCommandBuilder().setName("ping").setDescription("Replies with Pong!"),
     async execute(interaction) {
         function githash() {
-            return execSync('git rev-parse HEAD').toString().trim().slice(0, 7);
+            return execSync("git rev-parse HEAD").toString().trim().slice(0, 7);
         }
         function commitMessage() {
-            return execSync('git log -1 --format="%B"').toString().trim();
+            return execSync("git log -1 --format=\"%B\"").toString().trim();
         }
         const githashValue = githash();
         const commitMessageValue = commitMessage();
         const embed = new EmbedBuilder()
-            .setTitle(`Pong!`)
+            .setTitle("Pong!")
             .setColor(0x0099ff)
             .setDescription(`Bot ${interaction.client.user.username} is now live!`)
             .addFields({

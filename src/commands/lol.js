@@ -113,7 +113,7 @@ module.exports = {
                         )
                     );
                 await interaction.editReply({
-                    content: `LoLアカウントを選択するメニューをDMに送信しました。ご確認ください。`
+                    content: "LoLアカウントを選択するメニューをDMに送信しました。ご確認ください。"
                 });
                 await interaction.user.send({
                     content: `**${user.username}** のlolアカウントを選択してください。`,

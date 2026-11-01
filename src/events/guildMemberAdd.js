@@ -2,7 +2,7 @@ const {
     Events,
     EmbedBuilder
 } = require("discord.js");
-const generateWelcomeImage = require('../utils/canvas/generateWelcomeImage');
+const generateWelcomeImage = require("../utils/canvas/generateWelcomeImage");
 
 module.exports = {
     name: Events.GuildMemberAdd,

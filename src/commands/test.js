@@ -5,8 +5,8 @@ const {
     SlashCommandBuilder,
     MessageFlags,
 } = require("discord.js");
-const Canvas = require('@napi-rs/canvas');
-const path = require('path');
+const Canvas = require("@napi-rs/canvas");
+const path = require("path");
 const { execPath, title } = require("process");
 const dayjs = require("dayjs");
 const db = require("../models/Database");

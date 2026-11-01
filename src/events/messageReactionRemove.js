@@ -9,7 +9,7 @@ module.exports = {
             try {
                 await reaction.fetch();
             } catch (error) {
-                console.error('Something went wrong when fetching the reaction:', error);
+                console.error("Something went wrong when fetching the reaction:", error);
                 return;
             }
         }

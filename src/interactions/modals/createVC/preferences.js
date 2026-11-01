@@ -36,7 +36,7 @@ module.exports = {
             const selectedVoiceType = voiceType || "f1";
 
             await TemporaryVC.savePrefs(creatorId, newName, userLimit, notifyLog, readMessage, selectedVoiceType);
-            await interaction.reply({ content: `チャンネル設定を変更しました。`, flags: MessageFlags.Ephemeral });
+            await interaction.reply({ content: "チャンネル設定を変更しました。", flags: MessageFlags.Ephemeral });
         } catch (error) {
             console.error("チャンネル設定の変更に失敗しました:", error);
             if (!interaction.replied) {

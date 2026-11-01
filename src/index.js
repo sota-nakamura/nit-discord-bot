@@ -133,7 +133,7 @@ http.createServer(app).listen(process.env.PORT || 3000, async () => {
         const rest = new REST().setToken(mainBot.token);
         console.log(`[INFO] Started refreshing ${commands.length} application (/) commands.`);
         await rest.put(Routes.applicationGuildCommands(mainBot.clientId, guildId), { body: commands });
-        console.log(`[INFO] Successfully reloaded application (/) commands.`);
+        console.log("[INFO] Successfully reloaded application (/) commands.");
     } catch (error) {
         console.error("[ERROR] Failed to reload commands:", error);
     }

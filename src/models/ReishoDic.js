@@ -48,7 +48,7 @@ class ReishoDic {
     }
 
     static async save(content, type) {
-        if (!content || typeof type !== 'number') {
+        if (!content || typeof type !== "number") {
             throw new Error("Content and type are required");
         }
         const typeStr = type ? "単語" : "フレーズ";

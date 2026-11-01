@@ -36,7 +36,7 @@ module.exports = {
         const mentions = memberVoiceChannel.members
             .filter(member => member.id !== interaction.client.user.id)
             .map(member => `<@${member.id}>`)
-            .join(' ');
+            .join(" ");
 
         if (memberVoiceChannel !== targetUserVoiceChannel) {
             await interaction.reply({ content: "同じボイスチャンネルに入ってください", flags: MessageFlags.Ephemeral });

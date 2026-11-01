@@ -1,24 +1,24 @@
-const path = require('node:path');
-const fs = require('node:fs');
-const { EventEmitter } = require('node:events');
-const { execFile } = require('node:child_process');
-const YTDlpWrap = require('yt-dlp-wrap-plus').default;
+const path = require("node:path");
+const fs = require("node:fs");
+const { EventEmitter } = require("node:events");
+const { execFile } = require("node:child_process");
+const YTDlpWrap = require("yt-dlp-wrap-plus").default;
 
-const binDir = path.resolve(__dirname, '../../bin');
-const cacheDir = path.resolve(__dirname, '../../cache');
+const binDir = path.resolve(__dirname, "../../bin");
+const cacheDir = path.resolve(__dirname, "../../cache");
 
-const isWin = process.platform === 'win32';
-const binaryName = isWin ? 'yt-dlp.exe' : 'yt-dlp';
-const ffmpegName = isWin ? 'ffmpeg.exe' : 'ffmpeg';
+const isWin = process.platform === "win32";
+const binaryName = isWin ? "yt-dlp.exe" : "yt-dlp";
+const ffmpegName = isWin ? "ffmpeg.exe" : "ffmpeg";
 
 const localBinaryPath = path.join(binDir, binaryName);
 const localFfmpegPath = path.join(binDir, ffmpegName);
 
 // bin配下に存在すればそのバイナリを使用し、無ければシステムPATHを使用
-const binaryPath = fs.existsSync(localBinaryPath) ? localBinaryPath : 'yt-dlp';
-let ffmpegPath = fs.existsSync(localFfmpegPath) ? localFfmpegPath : 'ffmpeg';
+const binaryPath = fs.existsSync(localBinaryPath) ? localBinaryPath : "yt-dlp";
+let ffmpegPath = fs.existsSync(localFfmpegPath) ? localFfmpegPath : "ffmpeg";
 try {
-    const ffmpegStatic = require('ffmpeg-static');
+    const ffmpegStatic = require("ffmpeg-static");
     if (ffmpegStatic && fs.existsSync(ffmpegStatic)) {
         ffmpegPath = ffmpegStatic;
         process.env.FFMPEG_PATH = ffmpegStatic;
@@ -44,15 +44,15 @@ class YtDlpEventEmitter extends EventEmitter {
      */
     async getVideoInfo(query) {
         const trimmedQuery = query.trim();
-        const isUrl = trimmedQuery.startsWith('http://') || trimmedQuery.startsWith('https://');
+        const isUrl = trimmedQuery.startsWith("http://") || trimmedQuery.startsWith("https://");
         const isSearchPrefix = /^[a-zA-Z0-9]+search\d*:/.test(trimmedQuery);
         const target = (isUrl || isSearchPrefix) ? trimmedQuery : `ytsearch1:${trimmedQuery}`;
 
         const args = [
             target,
-            '--dump-json',
-            '--no-playlist',
-            '--js-runtimes', 'node',
+            "--dump-json",
+            "--no-playlist",
+            "--js-runtimes", "node",
         ];
 
         return new Promise((resolve, reject) => {
@@ -62,10 +62,10 @@ class YtDlpEventEmitter extends EventEmitter {
                 }
                 try {
                     let info;
-                    const lines = stdout.split('\n');
+                    const lines = stdout.split("\n");
                     for (const line of lines) {
                         const trimmed = line.trim();
-                        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+                        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
                             try {
                                 info = JSON.parse(trimmed);
                                 break;
@@ -84,7 +84,7 @@ class YtDlpEventEmitter extends EventEmitter {
                         title: info.title,
                         url: info.original_url || info.webpage_url,
                         duration: info.duration,
-                        durationString: info.duration_string || `${Math.floor((info.duration || 0) / 60)}:${String((info.duration || 0) % 60).padStart(2, '0')}`,
+                        durationString: info.duration_string || `${Math.floor((info.duration || 0) / 60)}:${String((info.duration || 0) % 60).padStart(2, "0")}`,
                         thumbnail: info.thumbnail,
                         channel: info.channel || info.uploader,
                         viewCount: info.view_count,
@@ -110,13 +110,13 @@ class YtDlpEventEmitter extends EventEmitter {
         if (fs.existsSync(targetFilePath)) {
             const cachedProgress = {
                 percent: 100,
-                totalSize: 'Cached',
-                currentSpeed: 'Cached',
-                eta: '00:00',
+                totalSize: "Cached",
+                currentSpeed: "Cached",
+                eta: "00:00",
                 cached: true,
             };
-            this.emit('progress', cachedProgress);
-            if (typeof progressCallback === 'function') {
+            this.emit("progress", cachedProgress);
+            if (typeof progressCallback === "function") {
                 progressCallback(cachedProgress);
             }
             return { info, filePath: targetFilePath };
@@ -124,35 +124,35 @@ class YtDlpEventEmitter extends EventEmitter {
 
         const args = [
             info.url,
-            '-x',
-            '--audio-format', 'mp3',
-            '-o', path.join(cacheDir, `${info.id}.%(ext)s`),
-            '--ffmpeg-location', ffmpegPath,
-            '--js-runtimes', 'node',
-            '--no-playlist',
+            "-x",
+            "--audio-format", "mp3",
+            "-o", path.join(cacheDir, `${info.id}.%(ext)s`),
+            "--ffmpeg-location", ffmpegPath,
+            "--js-runtimes", "node",
+            "--no-playlist",
         ];
 
         return new Promise((resolve, reject) => {
             const emitter = this.ytDlpWrap.exec(args);
 
-            emitter.on('progress', (progress) => {
-                this.emit('progress', progress);
-                if (typeof progressCallback === 'function') {
+            emitter.on("progress", (progress) => {
+                this.emit("progress", progress);
+                if (typeof progressCallback === "function") {
                     progressCallback(progress);
                 }
             });
 
-            emitter.on('ytDlpEvent', (type, data) => {
-                this.emit('ytDlpEvent', type, data);
+            emitter.on("ytDlpEvent", (type, data) => {
+                this.emit("ytDlpEvent", type, data);
             });
 
-            emitter.on('error', (err) => {
-                this.emit('error', err);
+            emitter.on("error", (err) => {
+                this.emit("error", err);
                 reject(err);
             });
 
-            emitter.on('close', () => {
-                this.emit('close');
+            emitter.on("close", () => {
+                this.emit("close");
                 if (fs.existsSync(targetFilePath)) {
                     resolve({ info, filePath: targetFilePath });
                 } else {
@@ -171,7 +171,7 @@ if (require.main === module) {
             const version = await yt.ytDlpWrap.getVersion();
             console.log(`yt-dlp version: ${version}`);
         } catch (err) {
-            console.error('Failed to run yt-dlp. Please run `npm run build` to download the binary.', err);
+            console.error("Failed to run yt-dlp. Please run `npm run build` to download the binary.", err);
         }
     })();
 }
