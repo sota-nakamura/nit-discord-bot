@@ -64,6 +64,7 @@ app.get("/auth", async (req, res, next) => {
 
 // use middleware api/vc.js
 app.use("/api/vc", require("./api/vc"));
+app.use("/api/lolaccount", require("./api/lolaccount"));
 
 // 404 Not Found もエラー処理ミドルウェアへ渡す
 app.use((req, res, next) => {
