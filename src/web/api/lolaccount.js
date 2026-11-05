@@ -11,7 +11,7 @@ router.get("/:id", async (req, res, next) => {
             message: "LoLアカウントが見つかりません"
         });
     }
-    res.json(lolAccount);
+    return res.json(lolAccount);
 });
 
 module.exports = router;
