@@ -63,7 +63,10 @@ async function getPrefs(req, res, next) {
 async function savePrefs(req, res, next) {
     try {
         const channelId = req.params.channelId;
-        const { userId, name, memberLimit, notifyLog, readMessage, voiceType } = req.body;
+        let userId;
+        const { name, memberLimit, notifyLog, readMessage, voiceType } = req.body;
+
+        userId = req.body.userId;
 
         if (!userId) {
             return next({
@@ -78,15 +81,6 @@ async function savePrefs(req, res, next) {
         const parsedReadMessage = readMessage ? 1 : 0;
         const selectedVoiceType = voiceType || "f1";
 
-        // 1. DBに設定を保存
-        await TemporaryVC.savePrefs(
-            userId,
-            name,
-            parsedMemberLimit,
-            parsedNotifyLog,
-            parsedReadMessage,
-            selectedVoiceType
-        );
 
         const newPreferences = {
             user_id: userId,
@@ -98,6 +92,27 @@ async function savePrefs(req, res, next) {
         };
 
         if (channelId) {
+            const vc = await TemporaryVC.getVC(channelId);
+            const creatorId = vc ? vc.creator_id : null;
+            const targetUserId = (creatorId && userId !== creatorId && userId == process.env.BOT_OWNER_ID)
+                ? creatorId
+                : userId;
+
+            newPreferences.user_id = targetUserId;
+
+            // 保存前の設定を取得（savePrefsでキャッシュが上書きされる前に取得する）
+            const currentPreferences = (await TemporaryVC.getPrefs(targetUserId)) || {};
+
+            await TemporaryVC.savePrefs(
+                targetUserId,
+                name,
+                parsedMemberLimit,
+                parsedNotifyLog,
+                parsedReadMessage,
+                selectedVoiceType
+            );
+
+            // edit channel config embed
             const client = req.app.get("discordClient");
             if (client) {
                 const channel = client.channels.cache.get(channelId) || await client.channels.fetch(channelId).catch(() => null);
@@ -113,7 +128,7 @@ async function savePrefs(req, res, next) {
                     if (messages) {
                         const controlMessage = messages.find(m => m.author.id === client.user.id);
                         if (controlMessage) {
-                            const updatedContainer = createVCConfigContainer(channelId, userId, newPreferences);
+                            const updatedContainer = createVCConfigContainer(channelId, targetUserId, newPreferences);
                             await controlMessage.edit({
                                 components: [updatedContainer],
                                 flags: MessageFlags.IsComponentsV2
