@@ -32,17 +32,17 @@ function createVCConfigContainer(channelId, userId, preference) {
         .addSeparatorComponents(
             new SeparatorBuilder()
         )
-        .addSectionComponents(
-            new SectionBuilder()
-                .addTextDisplayComponents(
-                    new TextDisplayBuilder()
-                        .setContent("### チャンネル設定の変更")
-                )
-                .setButtonAccessory(
+        .addActionRowComponents(
+            new ActionRowBuilder()
+                .addComponents(
                     new ButtonBuilder()
-                        .setLabel("設定")
+                        .setLabel("ブラウザで設定")
                         .setStyle(ButtonStyle.Link)
-                        .setURL(`${process.env.DASHBOARD_URL}/settings/vc?channelId=${channelId}`)
+                        .setURL(`${process.env.DASHBOARD_URL}/settings/vc?channelId=${channelId}`),
+                    new ButtonBuilder()
+                        .setLabel("Discord上で設定")
+                        .setStyle(ButtonStyle.Primary)
+                        .setCustomId(`channelPref_${channelId}`)
                 )
         );
 }
