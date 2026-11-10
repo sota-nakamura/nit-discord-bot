@@ -1,4 +1,8 @@
-const { MessageFlags } = require("discord.js");
+const {
+    MessageFlags,
+    inlineCode,
+    EmbedBuilder
+} = require("discord.js");
 const TemporaryVC = require("../../models/TemporaryVC");
 const createVCConfigContainer = require("../../utils/components/tempvc");
 const router = require("express").Router();
@@ -135,8 +139,82 @@ async function savePrefs(req, res, next) {
                             }).catch(err => console.error("[setprefs controlMessage.edit Error]:", err));
                         }
                     }
+
+                    // check the preference diff
+                    const allKeys = [...new Set([...Object.keys(currentPreferences), ...Object.keys(newPreferences)])];
+                    const diff = [];
+
+                    for (const key of allKeys) {
+                        if (key === "user_id") continue;
+                        const hasOld = key in currentPreferences;
+                        const hasNew = key in newPreferences;
+                        if (!hasOld) {
+                            diff.push({
+                                key,
+                                oldValue: undefined,
+                                newValue: newPreferences[key]
+                            });
+                        } else if (!hasNew) {
+                            diff.push({
+                                key,
+                                oldValue: currentPreferences[key],
+                                newValue: undefined
+                            });
+                        } else if (JSON.stringify(currentPreferences[key]) !== JSON.stringify(newPreferences[key])) {
+                            diff.push({
+                                key,
+                                oldValue: currentPreferences[key],
+                                newValue: newPreferences[key]
+                            });
+                        }
+                    }
+
+                    const keyLabels = {
+                        name: "チャンネル名",
+                        member_limit: "最大参加人数",
+                        notify_log: "参加・退出通知設定",
+                        read_message: "読み上げ設定",
+                        voice_type: "読み上げボイス"
+                    };
+
+                    const formatValue = (key, val) => {
+                        if (val === undefined || val === null || val === "") return "未設定";
+                        if (key === "member_limit") return val === 0 ? "制限なし" : `${val}人`;
+                        if (key === "notify_log" || key === "read_message") return val === 1 ? "オン" : "オフ";
+                        if (key === "voice_type") {
+                            const voice = ttsList.find(t => t.value === val);
+                            return voice ? voice.label : val;
+                        }
+                        return String(val);
+                    };
+
+                    if (diff.length > 0) {
+                        const embed = new EmbedBuilder()
+                            .setTitle("チャンネル設定を更新しました")
+                            .setColor(0x0099ff)
+                            .addFields(diff.map(({ key, oldValue, newValue }) => {
+                                return {
+                                    name: keyLabels[key] || key,
+                                    value: inlineCode(`${formatValue(key, oldValue)} -> ${formatValue(key, newValue)}`)
+                                };
+                            }));
+                        await channel.send({
+                            embeds: [embed]
+                        });
+                    } else {
+                        await channel.send(`チャンネル設定を更新しました`);
+                    }
                 }
             }
+        } else {
+            await TemporaryVC.savePrefs(
+                userId,
+                name,
+                parsedMemberLimit,
+                parsedNotifyLog,
+                parsedReadMessage,
+                selectedVoiceType
+            );
         }
 
         res.status(200).json({
