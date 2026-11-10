@@ -4,8 +4,12 @@ const {
     SeparatorBuilder,
     SectionBuilder,
     ButtonBuilder,
-    ButtonStyle
+    ButtonStyle,
+    ActionRowBuilder,
+    inlineCode
 } = require("discord.js");
+
+const ttsList = require("../../../config/ttsList.json");
 
 function createVCConfigContainer(channelId, userId, preference) {
     return new ContainerBuilder()
@@ -13,7 +17,7 @@ function createVCConfigContainer(channelId, userId, preference) {
         .addTextDisplayComponents(
             new TextDisplayBuilder()
                 .setContent(
-                    `## :tools: 一時的なVCを生成しました \n <@${userId}> さん、ようこそ! \n - 一時的なVCはすべてのユーザーが退出すると削除されます。\n - 作成者のみが下のボタンからチャンネル名を変更できます。`,
+                    `## :tools: 一時的なVCを生成しました \n 一時的なVCはすべてのユーザーが退出すると削除されます。`,
                 ),
         )
         .addSeparatorComponents(
@@ -22,11 +26,11 @@ function createVCConfigContainer(channelId, userId, preference) {
         .addTextDisplayComponents((textDisplay) =>
             textDisplay.setContent(
                 "### 現在のチャンネル設定\n" +
-                `**チャンネル名**: ${preference.name}\n` +
-                `**最大参加人数**: ${preference.member_limit === 0 ? "制限なし" : preference.member_limit + "人"}\n` +
-                `**読み上げ設定**: ${preference.read_message === 1 ? "オン" : "オフ"}\n` +
-                `**参加・退出通知設定**: ${preference.notify_log === 1 ? "オン" : "オフ"}\n` +
-                `**読み上げボイス**: ${preference.voice_type}`
+                `**チャンネル名**: ${inlineCode(preference.name || "未設定")}\n` +
+                `**最大参加人数**: ${inlineCode(preference.member_limit === 0 ? "制限なし" : preference.member_limit + "人")}\n` +
+                `**読み上げ設定**: ${inlineCode(preference.read_message === 1 ? "オン" : "オフ")}\n` +
+                `**参加・退出通知設定**: ${inlineCode(preference.notify_log === 1 ? "オン" : "オフ")}\n` +
+                `**読み上げボイス**: ${inlineCode(ttsList.find(t => t.value === preference.voice_type).label || "未設定")}`
             )
         )
         .addSeparatorComponents(
