@@ -82,10 +82,10 @@ function initSqliteTables() {
                 not_funny_count INTEGER DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS lol_accounts (
-                discord_user_id TEXT PRIMARY KEY,
+                discord_user_id TEXT,
                 riot_id_name TEXT,
                 riot_id_tag TEXT,
-                puuid TEXT
+                puuid TEXT PRIMARY KEY
             );
             CREATE TABLE IF NOT EXISTS reminder (
                 reminder_id TEXT PRIMARY KEY,
@@ -102,10 +102,40 @@ function initSqliteTables() {
                 content TEXT NOT NULL,
                 type TEXT NOT NULL
             );
+        `);
 
+        // lol_accounts の複数アカウント対応マイグレーション
+        const lolTableInfo = sqliteDb.prepare("PRAGMA table_info(lol_accounts)").all();
+        if (lolTableInfo.some(col => col.name === "discord_user_id" && col.pk > 0)) {
+            sqliteDb.transaction(() => {
+                sqliteDb.exec(`
+                    ALTER TABLE lol_accounts RENAME TO lol_accounts_old;
+                    CREATE TABLE lol_accounts (
+                        discord_user_id TEXT,
+                        riot_id_name TEXT,
+                        riot_id_tag TEXT,
+                        puuid TEXT PRIMARY KEY
+                    );
+                    INSERT OR REPLACE INTO lol_accounts (discord_user_id, riot_id_name, riot_id_tag, puuid)
+                    SELECT discord_user_id, riot_id_name, riot_id_tag, puuid FROM lol_accounts_old;
+                    DROP TABLE lol_accounts_old;
+                `);
+            })();
+        }
+        const lolIndexList = sqliteDb.prepare("PRAGMA index_list(lol_accounts)").all();
+        const discordIdx = lolIndexList.find(idx => idx.name === "idx_lol_accounts_discord_user_id");
+        const puuidIdx = lolIndexList.find(idx => idx.name === "idx_lol_accounts_puuid");
+        if (discordIdx?.unique === 1 || (puuidIdx && puuidIdx.unique === 0)) {
+            sqliteDb.exec(`
+                DROP INDEX IF EXISTS idx_lol_accounts_discord_user_id;
+                DROP INDEX IF EXISTS idx_lol_accounts_puuid;
+            `);
+        }
+
+        sqliteDb.exec(`
             CREATE UNIQUE INDEX IF NOT EXISTS idx_role_prefix_role_id ON role_prefix(role_id);
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_lol_accounts_discord_user_id ON lol_accounts(discord_user_id);
-            CREATE INDEX IF NOT EXISTS idx_lol_accounts_puuid ON lol_accounts(puuid);
+            CREATE INDEX IF NOT EXISTS idx_lol_accounts_discord_user_id ON lol_accounts(discord_user_id);
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_lol_accounts_puuid ON lol_accounts(puuid);
             CREATE INDEX IF NOT EXISTS idx_reisho_dic_type_content ON reisho_dic(type, content);
             CREATE INDEX IF NOT EXISTS idx_reminder_time ON reminder(time);
             CREATE INDEX IF NOT EXISTS idx_reminder_user_id ON reminder(user_id);
@@ -169,10 +199,10 @@ async function initPostgresTables() {
                 not_funny_count INTEGER DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS lol_accounts (
-                discord_user_id TEXT PRIMARY KEY,
+                discord_user_id TEXT,
                 riot_id_name TEXT,
                 riot_id_tag TEXT,
-                puuid TEXT
+                puuid TEXT PRIMARY KEY
             );
             CREATE TABLE IF NOT EXISTS reminder (
                 reminder_id TEXT PRIMARY KEY,
@@ -191,8 +221,8 @@ async function initPostgresTables() {
             );
 
             CREATE UNIQUE INDEX IF NOT EXISTS idx_role_prefix_role_id ON role_prefix(role_id);
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_lol_accounts_discord_user_id ON lol_accounts(discord_user_id);
-            CREATE INDEX IF NOT EXISTS idx_lol_accounts_puuid ON lol_accounts(puuid);
+            CREATE INDEX IF NOT EXISTS idx_lol_accounts_discord_user_id ON lol_accounts(discord_user_id);
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_lol_accounts_puuid ON lol_accounts(puuid);
             CREATE INDEX IF NOT EXISTS idx_reisho_dic_type_content ON reisho_dic(type, content);
             CREATE INDEX IF NOT EXISTS idx_reminder_time ON reminder(time);
             CREATE INDEX IF NOT EXISTS idx_reminder_user_id ON reminder(user_id);
