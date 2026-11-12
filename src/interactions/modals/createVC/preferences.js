@@ -1,5 +1,6 @@
 const { MessageFlags } = require("discord.js");
 const TemporaryVC = require("../../../models/TemporaryVC");
+const { updateVCConfig } = require("../../../utils/components/tempvc");
 
 module.exports = {
     customId: "channelPrefModal_",
@@ -13,14 +14,16 @@ module.exports = {
         }
 
         try {
-            const channel = await interaction.guild.channels.fetch(channelId);
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+            const channel = interaction.guild.channels.cache.get(channelId) || await interaction.guild.channels.fetch(channelId);
             const newName = interaction.fields.getTextInputValue("channelNameInput") || `${interaction.user.username}のVC`;
             const newMemberLimitInput = interaction.fields.getTextInputValue("channelMemberLimitInput");
             const notifyLog = interaction.fields.getCheckbox("notifyLogCheckbox") ? 1 : 0;
             const readMessage = interaction.fields.getCheckbox("readMessageCheckbox") ? 1 : 0;
             const voiceType = interaction.fields.getStringSelectValues("voiceTypeSelect");
 
-            let userLimit = channel.userLimit;
+            let userLimit = channel ? channel.userLimit : 0;
             if (newMemberLimitInput) {
                 const parsedLimit = parseInt(newMemberLimitInput, 10);
                 if (!isNaN(parsedLimit) && parsedLimit >= 0 && parsedLimit <= 99) {
@@ -28,18 +31,20 @@ module.exports = {
                 }
             }
 
-            await channel.edit({
+            await updateVCConfig(interaction.client, channelId, creatorId, {
                 name: newName,
-                userLimit: userLimit
+                member_limit: userLimit,
+                notify_log: notifyLog,
+                read_message: readMessage,
+                voice_type: voiceType
             });
 
-            const selectedVoiceType = voiceType || "f1";
-
-            await TemporaryVC.savePrefs(creatorId, newName, userLimit, notifyLog, readMessage, selectedVoiceType);
-            await interaction.reply({ content: "チャンネル設定を変更しました。", flags: MessageFlags.Ephemeral });
+            await interaction.editReply({ content: "チャンネル設定を変更しました。" });
         } catch (error) {
             console.error("チャンネル設定の変更に失敗しました:", error);
-            if (!interaction.replied) {
+            if (interaction.deferred || interaction.replied) {
+                await interaction.editReply({ content: "チャンネル設定の変更中にエラーが発生しました。" });
+            } else {
                 await interaction.reply({ content: "チャンネル設定の変更中にエラーが発生しました。", flags: MessageFlags.Ephemeral });
             }
         }
