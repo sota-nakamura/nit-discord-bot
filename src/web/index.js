@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
@@ -10,6 +11,23 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const apiLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res, next) => {
+        return next({
+            status: 429,
+            name: "TOO_MANY_REQUESTS",
+            message: "リクエストが多すぎます。しばらく待ってから再試行してください。"
+        });
+    }
+});
+
+// APIルートにRate Limitを適用
+app.use(apiLimiter);
 
 app.get("/", (req, res) => {
     res.status(200).json({ message: "Discord Bot is Operating!" });
