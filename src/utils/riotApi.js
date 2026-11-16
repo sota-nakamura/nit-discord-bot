@@ -203,6 +203,24 @@ async function getChampionData(championId) {
     }
 }
 
+async function getDeepLoLAIScore(matchId, account, championId = null) {
+    if (!matchId || !account) return null;
+    try {
+        const res = await fetch(`https://b2c-api-cdn.deeplol.gg/match/match-cached?match_id=${matchId}&platform_id=JP1`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        const participant = data.participants_list?.find(
+            p => (p.riot_id_name?.toLowerCase() === account.riot_id_name?.toLowerCase() &&
+                  p.riot_id_tag_line?.toLowerCase() === account.riot_id_tag?.toLowerCase()) ||
+                 (championId !== null && p.champion_id === Number(championId))
+        );
+        return participant?.ai_score != null ? Math.round(participant.ai_score) : null;
+    } catch (e) {
+        console.error("Error fetching AI score from DeepLOL:", e);
+        return null;
+    }
+}
+
 module.exports = {
     rAPI,
     getPuuid,
