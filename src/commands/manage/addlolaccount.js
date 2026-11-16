@@ -18,7 +18,12 @@ async function executeAddLolAcc(interaction) {
         });
     }
 
-    await LoLAccount.register(user.id, name, tag, puuid);
+    const registered = await LoLAccount.register(interaction.user.id, name, tag, puuid);
+    if (!registered) {
+        return await interaction.editReply({
+            content: `Riot ID **${name}#${tag}** は既に別のDiscordアカウントに連携されています。`
+        });
+    }
 
     const embed = new EmbedBuilder()
         .setTitle("Riot ID 連携完了")

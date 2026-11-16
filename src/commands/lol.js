@@ -6,7 +6,8 @@ const {
     StringSelectMenuBuilder
 } = require("discord.js");
 const LoLAccount = require("../models/LoLAccount");
-const { getPuuid, getActiveGame, getChampionData } = require("../utils/riotApi");
+const { getPuuid, getActiveGame, getChampionData, getLatestMatchStats, getDeepLoLAIScore, getQueueName } = require("../utils/riotApi");
+const { createLoLActiveGameEmbed, createLoLMatchResultEmbed } = require("../utils/embed");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -42,6 +43,17 @@ module.exports = {
                     option
                         .setName("user")
                         .setDescription("状況を確認したいユーザー（省略した場合は自分）")
+                        .setRequired(false)
+                )
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName("lastgame")
+                .setDescription("最新の試合結果を取得します。")
+                .addUserOption(option =>
+                    option
+                        .setName("user")
+                        .setDescription("試合結果を確認したいユーザー（省略した場合は自分）")
                         .setRequired(false)
                 )
         ),
@@ -202,28 +214,118 @@ module.exports = {
                 }
 
                 const champData = await getChampionData(game.championId);
+                const gameMode = getQueueName(game.gameQueueConfigId, game.gameMode);
 
-                const embed = new EmbedBuilder()
-                    .setAuthor({ name: targetUser.username, iconURL: targetUser.displayAvatarURL() })
-                    .setTitle(`${targetUser.displayName}は現在試合中です。`)
-                    .setDescription(`**${account.riot_id_name}#${account.riot_id_tag}** は現在試合中です！`)
-                    .setColor(0x0099ff)
-                    .addFields(
-                        { name: "ゲームモード", value: game.gameMode || "不明", inline: true },
-                        { name: "使用チャンピオン", value: champData.name, inline: true }
-                    )
-                    .setThumbnail(`https://ddragon.leagueoflegends.com/cdn/${game.version}/img/champion/${champData.image.full}`)
-                    .setTimestamp();
-
-                if (game.startTime > 0) {
-                    const startUnix = Math.floor(game.startTime / 1000);
-                    embed.addFields({ name: "開始時間", value: `<t:${startUnix}:R>`, inline: true });
-                }
+                const embed = createLoLActiveGameEmbed({
+                    account,
+                    user: targetUser,
+                    title: `${targetUser.displayName}は現在試合中です。`,
+                    description: `**${account.riot_id_name}#${account.riot_id_tag}** は現在試合中です！`,
+                    champData,
+                    gameMode,
+                    startTime: game.startTime,
+                    version: game.version
+                });
 
                 await interaction.editReply({ content: null, embeds: [embed], components: [] });
             } catch (error) {
                 console.error("Error fetching status:", error);
                 await interaction.editReply({
+                    content: "試合情報の取得中にエラーが発生しました。",
+                    components: []
+                });
+            }
+        }
+
+        else if (subcommand === "lastgame") {
+            await interaction.deferReply();
+            const target = interaction.options.getUser("user") || interaction.user;
+
+            const accountList = await LoLAccount.get(target.id);
+            if (!accountList || accountList.length === 0) {
+                return await interaction.editReply(`**${target.username}**のRiotアカウントは登録されていません。`);
+            }
+
+            let account = Array.isArray(accountList) ? accountList[0] : accountList;
+            if (Array.isArray(accountList) && accountList.length > 1) {
+                const RiotIDSelect = new StringSelectMenuBuilder()
+                    .setCustomId("lol_lastgame_account_select")
+                    .setPlaceholder("Riot IDを選択してください")
+                    .addOptions(
+                        accountList.map(acc => ({
+                            label: `${acc.riot_id_name}#${acc.riot_id_tag}`,
+                            value: acc.puuid
+                        }))
+                    );
+                const RiotIDSelectRow = new ActionRowBuilder().addComponents(RiotIDSelect);
+                const response = await interaction.editReply({
+                    content: "Riot IDが複数登録されています。結果を確認するアカウントを選択してください。",
+                    components: [RiotIDSelectRow]
+                });
+
+                try {
+                    const selectInteraction = await response.awaitMessageComponent({
+                        filter: i => i.user.id === interaction.user.id,
+                        time: 60_000
+                    });
+                    await selectInteraction.deferUpdate();
+                    account = accountList.find(acc => acc.puuid === selectInteraction.values[0]);
+                } catch {
+                    return await interaction.editReply({
+                        content: "タイムアウトしたため、処理をキャンセルしました。",
+                        components: []
+                    });
+                }
+            }
+
+            try {
+                const activeGame = await getActiveGame(account.puuid);
+                if (activeGame) {
+                    const champData = await getChampionData(activeGame.championId);
+                    const gameMode = getQueueName(activeGame.gameQueueConfigId, activeGame.gameMode);
+                    const embed = createLoLActiveGameEmbed({
+                        account,
+                        user: target,
+                        title: `**${account.riot_id_name}#${account.riot_id_tag}**は現在試合中です!`,
+                        description: `**${account.riot_id_name}#${account.riot_id_tag}** は現在試合中です！`,
+                        champData,
+                        gameMode,
+                        startTime: activeGame.startTime,
+                        version: activeGame.version
+                    });
+                    return await interaction.editReply({ content: null, embeds: [embed], components: [] });
+                }
+
+                const game = await getLatestMatchStats(account.puuid);
+                if (!game) {
+                    return await interaction.editReply({
+                        content: `**${account.riot_id_name}#${account.riot_id_tag}** の最近の試合履歴が見つかりませんでした。`,
+                        components: []
+                    });
+                }
+
+                const champData = await getChampionData(game.championId);
+                const aiScore = await getDeepLoLAIScore(game.matchId, account, game.championId);
+
+                const embed = createLoLMatchResultEmbed({
+                    account,
+                    user: target,
+                    title: `**${account.riot_id_name}#${account.riot_id_tag}**の最新の試合結果`,
+                    matchId: game.matchId,
+                    winStatus: game.win,
+                    gameMode: game.gameMode,
+                    champData,
+                    kda: game.kda,
+                    aiScore,
+                    gameDuration: game.gameDuration,
+                    killParticipation: game.killParticipation,
+                    version: game.version
+                });
+
+                return await interaction.editReply({ content: null, embeds: [embed], components: [] });
+            } catch (error) {
+                console.error("Error fetching lastgame from Riot API:", error);
+                return await interaction.editReply({
                     content: "試合情報の取得中にエラーが発生しました。",
                     components: []
                 });
