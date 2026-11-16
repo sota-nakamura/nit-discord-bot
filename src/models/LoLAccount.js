@@ -5,14 +5,26 @@ class LoLAccount {
     static cacheByPuuid = new Map();
     static isLoaded = false;
 
+    static _setCache(obj) {
+        this.cacheByPuuid.set(obj.puuid, obj);
+
+        const list = this.cacheByDiscord.get(obj.discord_user_id) || [];
+        const idx = list.findIndex(a => a.puuid === obj.puuid);
+        if (idx !== -1) {
+            list[idx] = obj;
+        } else {
+            list.push(obj);
+        }
+        this.cacheByDiscord.set(obj.discord_user_id, list);
+    }
+
     static async initCache() {
         try {
             const rows = await db.all("SELECT * FROM lol_accounts");
             this.cacheByDiscord.clear();
             this.cacheByPuuid.clear();
             for (const r of rows) {
-                this.cacheByDiscord.set(r.discord_user_id, r);
-                this.cacheByPuuid.set(r.puuid, r);
+                this._setCache(r);
             }
             this.isLoaded = true;
         } catch (err) {
@@ -21,23 +33,34 @@ class LoLAccount {
     }
 
     static async register(discordUserId, riotIdName, riotIdTag, puuid) {
+        const existing = await this.getByPUUID(puuid);
+        if (existing && existing.discord_user_id !== discordUserId) {
+            return false;
+        }
         const obj = { discord_user_id: discordUserId, riot_id_name: riotIdName, riot_id_tag: riotIdTag, puuid };
-        this.cacheByDiscord.set(discordUserId, obj);
-        this.cacheByPuuid.set(puuid, obj);
+        this._setCache(obj);
         return db.run(`
             INSERT INTO lol_accounts (discord_user_id, riot_id_name, riot_id_tag, puuid)
             VALUES (?, ?, ?, ?)
-            ON CONFLICT (discord_user_id) DO UPDATE SET
+            ON CONFLICT (puuid) DO UPDATE SET
                 riot_id_name = EXCLUDED.riot_id_name,
-                riot_id_tag = EXCLUDED.riot_id_tag,
-                puuid = EXCLUDED.puuid
+                riot_id_tag = EXCLUDED.riot_id_tag
+            WHERE lol_accounts.discord_user_id = EXCLUDED.discord_user_id
         `, discordUserId, riotIdName, riotIdTag, puuid);
     }
 
     static async unregister(puuid) {
         const existing = this.cacheByPuuid.get(puuid);
         if (existing) {
-            this.cacheByDiscord.delete(existing.discord_user_id);
+            const list = this.cacheByDiscord.get(existing.discord_user_id);
+            if (list) {
+                const filtered = list.filter(a => a.puuid !== puuid);
+                if (filtered.length > 0) {
+                    this.cacheByDiscord.set(existing.discord_user_id, filtered);
+                } else {
+                    this.cacheByDiscord.delete(existing.discord_user_id);
+                }
+            }
             this.cacheByPuuid.delete(puuid);
         }
         return db.run("DELETE FROM lol_accounts WHERE puuid = ?", puuid);
@@ -48,14 +71,13 @@ class LoLAccount {
             return this.cacheByDiscord.get(discordUserId);
         }
         if (!this.isLoaded) {
-            const row = await db.get("SELECT * FROM lol_accounts WHERE discord_user_id = ?", discordUserId);
-            if (row) {
-                this.cacheByDiscord.set(row.discord_user_id, row);
-                this.cacheByPuuid.set(row.puuid, row);
+            const rows = await db.all("SELECT * FROM lol_accounts WHERE discord_user_id = ?", discordUserId);
+            for (const r of rows) {
+                this._setCache(r);
             }
-            return row;
+            return rows;
         }
-        return null;
+        return [];
     }
 
     static async getByPUUID(puuid) {
@@ -65,8 +87,7 @@ class LoLAccount {
         if (!this.isLoaded) {
             const row = await db.get("SELECT * FROM lol_accounts WHERE puuid = ?", puuid);
             if (row) {
-                this.cacheByDiscord.set(row.discord_user_id, row);
-                this.cacheByPuuid.set(row.puuid, row);
+                this._setCache(row);
             }
             return row;
         }
@@ -75,14 +96,13 @@ class LoLAccount {
 
     static async getAll() {
         if (this.isLoaded) {
-            return Array.from(this.cacheByDiscord.values());
+            return Array.from(this.cacheByPuuid.values());
         }
         const rows = await db.all("SELECT * FROM lol_accounts");
         this.cacheByDiscord.clear();
         this.cacheByPuuid.clear();
         for (const r of rows) {
-            this.cacheByDiscord.set(r.discord_user_id, r);
-            this.cacheByPuuid.set(r.puuid, r);
+            this._setCache(r);
         }
         this.isLoaded = true;
         return rows;

@@ -4,6 +4,9 @@ const {
     AttachmentBuilder,
     SlashCommandBuilder,
     MessageFlags,
+    ActionRowBuilder,
+    StringSelectMenuBuilder,
+    ComponentType,
 } = require("discord.js");
 const Canvas = require("@napi-rs/canvas");
 const path = require("path");
@@ -111,8 +114,42 @@ module.exports = {
             const target = interaction.options.getUser("user");
 
             // 1. Check if they have a linked Riot Account first
-            const account = await LoLAccount.get(target.id);
-            if (account) {
+            const accountList = await LoLAccount.get(target.id);
+            if (accountList && accountList.length > 0) {
+                let account = accountList[0];
+                if (accountList.length > 1) {
+                    const RiotIDSelect = new StringSelectMenuBuilder()
+                        .setCustomId("test_activity_lol_select")
+                        .setPlaceholder("Riot IDを選択してください")
+                        .addOptions(
+                            accountList.map(acc => ({
+                                label: `${acc.riot_id_name}#${acc.riot_id_tag}`,
+                                value: acc.puuid
+                            }))
+                        );
+                    const RiotIDSelectRow = new ActionRowBuilder()
+                        .addComponents(RiotIDSelect);
+                    const response = await interaction.editReply({
+                        content: "Riot IDが複数登録されています。確認するアカウントを選択してください。",
+                        components: [RiotIDSelectRow]
+                    });
+
+                    try {
+                        const selectInteraction = await response.awaitMessageComponent({
+                            filter: i => i.user.id === interaction.user.id,
+                            componentType: ComponentType.StringSelect,
+                            time: 60_000
+                        });
+                        await selectInteraction.deferUpdate();
+                        account = accountList.find(acc => acc.puuid === selectInteraction.values[0]);
+                    } catch {
+                        return await interaction.editReply({
+                            content: "タイムアウトしたため、処理をキャンセルしました。",
+                            components: []
+                        });
+                    }
+                }
+
                 try {
                     let game = await getActiveGame(account.puuid);
                     let title = `**${account.riot_id_name}#${account.riot_id_tag}**は現在試合中です!`;
@@ -144,9 +181,13 @@ module.exports = {
                         embed.addFields({ name: "経過時間", value: `<t:${startUnix}:R>`, inline: true });
                     }
 
-                    return await interaction.editReply({ embeds: [embed] });
+                    return await interaction.editReply({ content: null, embeds: [embed], components: [] });
                 } catch (error) {
                     console.error("Error fetching live game from Riot API in test command:", error);
+                    return await interaction.editReply({
+                        content: "試合情報の取得中にエラーが発生しました。",
+                        components: []
+                    });
                 }
             } else {
                 await interaction.editReply(`**${target.username}**のRiotアカウントは登録されていません。`);
