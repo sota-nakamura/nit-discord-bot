@@ -5,7 +5,8 @@ const {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonBuilder,
-    ButtonStyle
+    ButtonStyle,
+    ComponentType
 } = require("discord.js");
 const RolePrefix = require("../models/RolePrefix");
 const Prefix = require("../utils/prefix");

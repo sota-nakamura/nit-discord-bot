@@ -5,8 +5,10 @@ const querystring = require("node:querystring");
 const { loadCommands } = require("./handlers/commandHandler");
 const { loadEvents } = require("./handlers/eventHandler");
 const { loadInteractions } = require("./handlers/interactionHandler");
+const { loadLoLMatchHandler, activeGames } = require("./handlers/lolMatchHandler");
 const { REST, Routes } = require("discord.js");
 const app = require("./web/");
+const { getActiveGame } = require("./utils/riotApi");
 
 
 process.on("unhandledRejection", (reason, promise) => {
@@ -76,6 +78,7 @@ const mainBot = bots[0];
 loadCommands(mainBot.client);
 loadEvents(mainBot.client);
 loadInteractions(mainBot.client);
+loadLoLMatchHandler(mainBot.client);
 
 // Attach the bot pool to the main client so event handlers can access it
 mainBot.client.botPool = bots;
@@ -93,6 +96,7 @@ const LoLAccount = require("./models/LoLAccount");
 const Netatweet = require("./models/Netatweet");
 const ReishoDic = require("./models/ReishoDic");
 const Reminder = require("./models/Reminder");
+const { all } = require("./models/Database");
 
 async function initAllCaches() {
     console.log("[INFO] Initializing in-memory cache for all models...");
@@ -121,6 +125,34 @@ async function initAllCaches() {
         ReishoDic,
         Reminder
     };
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function checkActiveGames() {
+    let isFirstRun = true;
+    while (true) {
+        const allRiotId = await LoLAccount.getAll();
+        if (allRiotId.length === 0) {
+            await sleep(5000);
+            continue;
+        }
+        for (const e of allRiotId) {
+
+            try {
+                const activeGame = await getActiveGame(e.puuid);
+                if (activeGame) {
+                    mainBot.client.emit("lolMatchStart", e, activeGame, isFirstRun);
+                } else if (activeGames.has(e.puuid)) {
+                    mainBot.client.emit("lolMatchEnd", e);
+                }
+            } catch (err) {
+                console.error("[ERROR] checkActiveGames:", err);
+            }
+            await sleep(3000);
+        }
+        isFirstRun = false;
+    }
 }
 
 // HTTP Server (Keep-alive for hosting)
@@ -152,7 +184,9 @@ async function bootstrap() {
                 console.error(`[ERROR] Failed to login Bot ${bot.index}:`, err);
             });
     }
+
+    const allRiotId = await LoLAccount.getAll();
+    await checkActiveGames(allRiotId);
 }
 
 bootstrap();
-
