@@ -81,25 +81,24 @@ async function getActiveGame(puuid) {
         const championId = participant ? participant.championId : null;
 
         return {
-            matchId: region.toUpperCase() + "_" + game.gameId,
-            gameMode: game.gameMode,
-            gameQueueConfigId: game.gameQueueConfigId,
+            matchId: "JP1_" + game.gameId,
+            gameMode: getQueueName(game.gameQueueConfigId),
             championId: championId,
             startTime: game.gameStartTime,
             version: await getVersion()
         };
     } catch (e) {
-        if (e.status === 400 || e.statusCode === 400) {
+        if (e?.status === 400 || e?.statusCode === 400) {
             const newPuuid = await refreshPuuidIfNeeded(puuid);
             if (newPuuid) {
                 return getActiveGame(newPuuid);
             }
         }
         // If not in game, Riot API returns 404
-        if (e.status === 404 || e.statusCode === 404) {
+        if (e?.status === 404 || e?.statusCode === 404) {
             return null;
         }
-        throw e;
+        throw e || new Error("Riot API request failed (network error or empty response)");
     }
 }
 
@@ -150,7 +149,7 @@ async function getLatestMatchStats(puuid) {
         const totalTeamKills = teamParticipants.reduce((sum, p) => sum + p.kills, 0);
 
         const killParticipation = totalTeamKills > 0
-            ? ((participant.kills + participant.assists) / totalTeamKills) * 100
+            ? Math.min(100, Math.floor(((participant.kills + participant.assists) / totalTeamKills) * 100))
             : 0;
 
         return {
@@ -163,11 +162,11 @@ async function getLatestMatchStats(puuid) {
             win: participant.win,
             gameDuration: match.info.gameDuration,
             kda: `${participant.kills}/${participant.deaths}/${participant.assists}`,
-            killParticipation: Math.min(100.0, parseFloat(killParticipation.toFixed(1))),
+            killParticipation,
             version: await getVersion()
         };
     } catch (e) {
-        if (e.status === 400 || e.statusCode === 400) {
+        if (e?.status === 400 || e?.statusCode === 400) {
             const newPuuid = await refreshPuuidIfNeeded(puuid);
             if (newPuuid) {
                 return getLatestMatchStats(newPuuid);
@@ -227,5 +226,7 @@ module.exports = {
     getSummonerId,
     getActiveGame,
     getLatestMatchStats,
-    getChampionData
+    getChampionData,
+    getQueueName,
+    getDeepLoLAIScore
 };
