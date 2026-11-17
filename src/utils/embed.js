@@ -62,7 +62,7 @@ function createLoLMatchResultEmbed({ account, user = null, title = null, matchId
             { name: "AIスコア", value: aiScore != null ? `${aiScore}` : "不明", inline: true }
         )
         .setFooter({
-            text: `試合結果: ${resultText} ｜ 試合時間: ${durationStr} ｜ キル関与率: ${killParticipation}`
+            text: `試合結果: ${resultText} ｜ 試合時間: ${durationStr} ｜ キル関与率: ${killParticipation}%`
         })
         .setTimestamp();
     if (user) {
