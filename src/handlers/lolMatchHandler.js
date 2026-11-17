@@ -1,4 +1,4 @@
-const { getChampionData, getLatestMatchStats, getDeepLoLAIScore, getQueueName } = require("../utils/riotApi");
+const { getChampionData, getLatestMatchStats, getDeepLoLAIScore, getQueueName } = require("../utils/lolApi");
 const { createLoLActiveGameEmbed, createLoLMatchResultEmbed } = require("../utils/embed");
 const dayjs = require("dayjs");
 

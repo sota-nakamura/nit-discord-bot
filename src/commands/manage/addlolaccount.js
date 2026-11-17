@@ -1,6 +1,6 @@
 const { EmbedBuilder, MessageFlags } = require("discord.js");
 const LoLAccount = require("../../models/LoLAccount");
-const { getPuuid } = require("../../utils/riotApi");
+const { getPuuid } = require("../../utils/lolApi");
 
 async function executeAddLolAcc(interaction) {
     await interaction.deferReply({
